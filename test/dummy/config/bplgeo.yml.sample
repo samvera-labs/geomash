@@ -1,0 +1,15 @@
+development:
+  getty_username: <username>
+  getty_password: <password>
+  mapquest_key: <mapquest_key>
+  bing_key: <bing_key>
+test: &TEST_
+  getty_username: <username>
+  getty_password: <password>
+  mapquest_key: <mapquest_key>
+  bing_key: <bing_key>
+production:
+  getty_username: <username>
+  getty_password: <password>
+  mapquest_key: <mapquest_key>
+  bing_key: <bing_key>

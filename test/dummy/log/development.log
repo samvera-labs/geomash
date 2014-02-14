@@ -1,0 +1,5 @@
+ETHON: Libcurl initialized
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=13.567333
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=4.766888
+ETHON: Libcurl initialized
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=4.112257
