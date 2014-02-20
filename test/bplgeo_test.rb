@@ -57,6 +57,16 @@ class BplgeoTest < ActiveSupport::TestCase
     assert_equal nil, result[:street_part]
     assert_equal nil, result[:term_differs_from_tgn]
 
+    result = Bplgeo.parse('Soviet Union')
+    assert_equal nil, result[:city_part]
+    assert_equal nil, result[:state_part]
+    assert_equal nil, result[:country_part]
+    assert_equal nil, result[:neighborhood_part]
+    assert_equal nil, result[:tgn_id]
+    assert_equal nil, result[:street_part]
+    assert_equal nil, result[:term_differs_from_tgn]
+
+
 
   end
 end

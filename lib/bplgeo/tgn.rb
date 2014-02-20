@@ -299,7 +299,7 @@ module Bplgeo
       matching_towns = Bplgeo::Constants::STATE_TOWN_TGN_IDS[state_key.to_sym].select {|hash| string.include?(hash[:location_name])}
       matching_towns.each do |matching_town|
         if matching_town[:location_name].split(' ').length > matched_terms_count
-          return_tgn_id == matching_town[:tgn_id]
+          return_tgn_id = matching_town[:tgn_id]
           matched_terms_count = matched_terms_count
         end
       end

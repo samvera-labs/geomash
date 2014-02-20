@@ -3,7 +3,7 @@
 This is a geographic parsing library. Beyond regular parsing to mapquest, bing, and google apis, it also can parse
 subject strings and query against TGN.
 
-As I'm short for time, full documentation and code cleanup will happen Tuesday.
+As I'm short for time, full documentation and code cleanup/standardization will happen on Friday, February 21st.
 
 ## Installation
 

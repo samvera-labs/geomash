@@ -147,7 +147,8 @@ module Bplgeo
       term = Bplgeo::Standardizer.parse_for_geographic_term(term) if parse_term_flag
       term = Bplgeo::Standardizer.standardize_geographic_term(term)
 
-      if term.blank?
+      #Soviet Union returns back a place in Kazakhstan
+      if term.blank? || term == 'Soviet Union'
         return {}
       end
 

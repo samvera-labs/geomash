@@ -142,8 +142,12 @@ module Bplgeo
         geo_hash[:term_differs_from_tgn] = true
       end
 
-      if geo_hash[:country_part] != 'United States' && !((geo_hash[:city_part].present? && term.to_ascii.downcase.include?(geo_hash[:city_part].to_ascii.downcase)) || (geo_hash[:state_part].present? && term.to_ascii.downcase.include?(geo_hash[:state_part].to_ascii.downcase)))
+      if geo_hash[:country_part] != 'United States'
+        if geo_hash[:city_part].blank? && geo_hash[:state_part].blank?
+          #Currently do noting
+        elsif !((geo_hash[:city_part].present? && term.to_ascii.downcase.include?(geo_hash[:city_part].to_ascii.downcase)) || (geo_hash[:state_part].present? && term.to_ascii.downcase.include?(geo_hash[:state_part].to_ascii.downcase)))
          geo_hash[:term_differs_from_tgn] = true
+        end
       end
 
       return geo_hash

@@ -980,3 +980,47 @@ BplgeoTest: test_truth
 ParserTest: test_google_parser
 ------------------------------
   [1m[35m (0.2ms)[0m  rollback transaction
+  [1m[36m (0.3ms)[0m  [1mbegin transaction[0m
+----------------------
+BplgeoTest: test_parse
+----------------------
+ETHON: Libcurl initialized
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=4.483236
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=1.2817129999999999
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=4.318583
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.580183
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.148839
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.384602
+  [1m[35m (0.2ms)[0m  rollback transaction
+  [1m[36m (0.1ms)[0m  [1mbegin transaction[0m
+----------------------
+BplgeoTest: test_truth
+----------------------
+  [1m[35m (0.1ms)[0m  rollback transaction
+  [1m[36m (0.1ms)[0m  [1mbegin transaction[0m
+------------------------------
+ParserTest: test_google_parser
+------------------------------
+  [1m[35m (0.1ms)[0m  rollback transaction
+  [1m[36m (0.3ms)[0m  [1mbegin transaction[0m
+----------------------
+BplgeoTest: test_parse
+----------------------
+ETHON: Libcurl initialized
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=1.514358
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.469239
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=1.710993
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.356353
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.155449
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.257315
+  [1m[35m (0.2ms)[0m  rollback transaction
+  [1m[36m (0.3ms)[0m  [1mbegin transaction[0m
+----------------------
+BplgeoTest: test_truth
+----------------------
+  [1m[35m (0.2ms)[0m  rollback transaction
+  [1m[36m (0.2ms)[0m  [1mbegin transaction[0m
+------------------------------
+ParserTest: test_google_parser
+------------------------------
+  [1m[35m (0.1ms)[0m  rollback transaction
