@@ -218,14 +218,13 @@ module Bplgeo
         if parsed_xml.Vocabulary.Count.text == '0'
           if neighborhood_part.present?
             geo_hash[:neighborhood_part] = nil
-            tgn_id_from_geo_hash(geo_hash)
+            geo_hash = tgn_id_from_geo_hash(geo_hash)
           elsif city_part.present?
             geo_hash[:city_part] = nil
-            tgn_id_from_geo_hash(geo_hash)
-          else
-            return geo_hash
+            geo_hash = tgn_id_from_geo_hash(geo_hash)
           end
 
+          return geo_hash
         end
 
         #Debugging an error
