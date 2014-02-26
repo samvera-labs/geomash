@@ -227,13 +227,6 @@ module Bplgeo
           return geo_hash
         end
 
-        #Debugging an error
-        begin
-          parsed_xml.Vocabulary.Subject.first.blank?
-        rescue
-          puts parsed_xml.to_s
-        end
-
         #If only one result, then not array. Otherwise array....
         if parsed_xml.Vocabulary.Subject.first.blank?
           subject = parsed_xml.Vocabulary.Subject
