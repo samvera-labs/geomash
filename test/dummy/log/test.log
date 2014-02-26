@@ -1024,3 +1024,72 @@ BplgeoTest: test_truth
 ParserTest: test_google_parser
 ------------------------------
   [1m[35m (0.1ms)[0m  rollback transaction
+  [1m[36m (0.8ms)[0m  [1mbegin transaction[0m
+----------------------
+BplgeoTest: test_parse
+----------------------
+ETHON: Libcurl initialized
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=5.278973
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=1.852223
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=4.131482
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.465078
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.146226
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.399015
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.504093
+  [1m[35m (0.2ms)[0m  rollback transaction
+  [1m[36m (0.1ms)[0m  [1mbegin transaction[0m
+----------------------
+BplgeoTest: test_truth
+----------------------
+  [1m[35m (0.1ms)[0m  rollback transaction
+  [1m[36m (0.1ms)[0m  [1mbegin transaction[0m
+------------------------------
+ParserTest: test_google_parser
+------------------------------
+  [1m[35m (0.2ms)[0m  rollback transaction
+  [1m[36m (0.3ms)[0m  [1mbegin transaction[0m
+----------------------
+BplgeoTest: test_parse
+----------------------
+ETHON: Libcurl initialized
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.968519
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.25246500000000005
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=1.143583
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.14193900000000004
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.144417
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.151378
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.508282
+  [1m[35m (0.1ms)[0m  rollback transaction
+  [1m[36m (0.1ms)[0m  [1mbegin transaction[0m
+----------------------
+BplgeoTest: test_truth
+----------------------
+  [1m[35m (0.0ms)[0m  rollback transaction
+  [1m[36m (0.1ms)[0m  [1mbegin transaction[0m
+------------------------------
+ParserTest: test_google_parser
+------------------------------
+  [1m[35m (0.1ms)[0m  rollback transaction
+  [1m[36m (0.3ms)[0m  [1mbegin transaction[0m
+----------------------
+BplgeoTest: test_parse
+----------------------
+ETHON: Libcurl initialized
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=1.02591
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.262411
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=1.151756
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.143214
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.143287
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.156536
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.507221
+  [1m[35m (0.1ms)[0m  rollback transaction
+  [1m[36m (0.0ms)[0m  [1mbegin transaction[0m
+----------------------
+BplgeoTest: test_truth
+----------------------
+  [1m[35m (0.0ms)[0m  rollback transaction
+  [1m[36m (0.1ms)[0m  [1mbegin transaction[0m
+------------------------------
+ParserTest: test_google_parser
+------------------------------
+  [1m[35m (0.1ms)[0m  rollback transaction

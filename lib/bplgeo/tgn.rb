@@ -214,8 +214,18 @@ module Bplgeo
       unless tgn_response.code == 500
         parsed_xml = Nokogiri::Slop(tgn_response.body)
 
+        #This is ugly and needs to be redone to achieve better recursive...
         if parsed_xml.Vocabulary.Count.text == '0'
-          return geo_hash
+          if neighborhood_part.present?
+            geo_hash[:neighborhood_part] = nil
+            tgn_id_from_geo_hash(geo_hash)
+          elsif city_part.present?
+            geo_hash[:city_part] = nil
+            tgn_id_from_geo_hash(geo_hash)
+          else
+            return geo_hash
+          end
+
         end
 
         #If only one result, then not array. Otherwise array....

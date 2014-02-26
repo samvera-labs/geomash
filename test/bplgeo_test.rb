@@ -66,6 +66,16 @@ class BplgeoTest < ActiveSupport::TestCase
     assert_equal nil, result[:street_part]
     assert_equal nil, result[:term_differs_from_tgn]
 
+    #FIXME: Should eventually still return Fenway even if not a TGN neighborhood... rewrite pending.
+    result = Bplgeo.parse('Fenway (Boston, Mass.)')
+    assert_equal 'Boston', result[:city_part]
+    assert_equal 'Massachusetts', result[:state_part]
+    assert_equal 'United States', result[:country_part]
+    assert_equal nil, result[:neighborhood_part]
+    assert_equal '7013445', result[:tgn_id]
+    assert_equal 'TODO: Not Implemented for Google Results', result[:street_part]
+    assert_equal true, result[:term_differs_from_tgn]
+
 
 
   end
