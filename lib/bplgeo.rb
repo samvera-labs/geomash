@@ -10,6 +10,8 @@ module Bplgeo
   require "nokogiri"
 
   def self.parse(term,parse_term=false)
+    return {} if term.blank?
+
     return_hash = Bplgeo::Parser.parse_mapquest_api(term, parse_term)
 
     if return_hash.blank?

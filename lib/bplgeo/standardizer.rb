@@ -3,7 +3,7 @@ module Bplgeo
 
     #Take a subject string and look for potential geographic terms.
     def self.parse_for_geographic_term(term)
-      geo_term = nil
+      geo_term = ''
 
       #Likely too long to be an address... some fields have junk with an address string...
       if term.length > 125
