@@ -7,7 +7,7 @@ module Bplgeo
 
       #Likely too long to be an address... some fields have junk with an address string...
       if term.length > 125
-        return nil
+        return ''
       end
 
       state_abbr_list = ['Mass']
