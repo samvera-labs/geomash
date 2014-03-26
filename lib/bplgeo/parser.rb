@@ -9,16 +9,23 @@ module Bplgeo
     end
 
     def self.mapquest_key
-      bplgeo_config[:mapquest_key]
+      bplgeo_config[:mapquest_key] || '<mapquest_key>'
     end
 
     def self.bing_key
-      bplgeo_config[:bing_key]
+      bplgeo_config[:bing_key] || '<bing_key>'
+    end
+
+    def self.timeout
+      bplgeo_config[:timeout]
     end
 
     #Note: Limited to only looking at United States places...
     def self.parse_bing_api(term, parse_term_flag=false)
       return_hash = {}
+
+      #Skip if no bing_key... possibly move this elsewhere?
+      return return_hash if self.bing_key == '<bing_key>'
 
       return_hash[:original_term] = term
 
@@ -43,7 +50,7 @@ module Bplgeo
         return {}
       end
 
-      Geocoder.configure(:lookup => :bing,:api_key => self.bing_key,:timeout => 7)
+      Geocoder.configure(:lookup => :bing,:api_key => self.bing_key,:timeout => self.timeout)
       bing_api_result = Geocoder.search(term)
 
       #Use only for United States results... international results are inaccurate.
@@ -80,6 +87,9 @@ module Bplgeo
     def self.parse_mapquest_api(term, parse_term_flag=false)
       return_hash = {}
 
+      #Skip if no bing_key... possibly move this elsewhere?
+      return return_hash if self.bing_key == '<mapquest_key>'
+
       return_hash[:original_term] = term
 
       term = Bplgeo::Standardizer.parse_for_geographic_term(term) if parse_term_flag
@@ -102,7 +112,7 @@ module Bplgeo
         return {}
       end
 
-      Geocoder.configure(:lookup => :mapquest,:api_key => self.mapquest_key,:timeout => 7)
+      Geocoder.configure(:lookup => :mapquest,:api_key => self.mapquest_key,:timeout => self.timeout)
       mapquest_api_result = Geocoder.search(term)
 
 
@@ -154,7 +164,7 @@ module Bplgeo
 
       return_hash[:standardized_term] = term
 
-      ::Geocoder.configure(:lookup => :google,:api_key => nil,:timeout => 7)
+      ::Geocoder.configure(:lookup => :google,:api_key => nil,:timeout => self.timeout)
       google_api_result = ::Geocoder.search(term)
 
       #Check if only a partial match. To avoid errors, strip out the first part and try again...

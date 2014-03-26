@@ -246,7 +246,7 @@ module Bplgeo
             geo_hash[:tgn_id] = subject.Subject_ID.text
           end
         else
-          parsed_xml.Vocabulary.Subject.each do |subject|
+         parsed_xml.Vocabulary.Subject.each do |subject|
 
             current_term = subject.Preferred_Term.text.gsub(/\(.*\)/, '').to_ascii.downcase.strip
             alternative_terms = subject.elements.any? { |node| node.name == 'Term' } ? subject.Term : ''

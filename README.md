@@ -1,9 +1,7 @@
 # Bplgeo
 
-This is a geographic parsing library. Beyond regular parsing to mapquest, bing, and google apis, it also can parse
-subject strings and query against TGN.
-
-As I'm short for time, full documentation and code cleanup/standardization will happen on Friday, February 21st.
+This is a geographic parsing library. Beyond regular parsing to mapquest api, bing api, and google api, it also can parse
+subject strings and query against TGN and geonames.
 
 ## Installation
 
@@ -11,16 +9,20 @@ Add this line to your application's Gemfile:
 
     gem 'bpl_geo', :git=>'https://github.com/boston-library/Bplgeo.git'
 
-You will need keys for the mapquest and Bing APIs along with TGN login credentials.
+The following needs to be obtained for optimal configuration. If any of these are skipped, those resources won't be available.
 
-    For mapquest: http://developer.mapquest.com/web/products/open
+    Mapquest API key: http://developer.mapquest.com/web/products/open
 
-    For bing: http://www.bingmapsportal.com
+    Bing API key: http://www.bingmapsportal.com
 
-(These dependencies will hopefully be reduced very soon).
+    geonames API account: http://www.geonames.org/login
+
+    TGN API account: ???? (believe it will be available free soon)
 
 You will need to use the "bplgeo.yml.sample" file in the test/dummy/config folder as "bplgeo.yml" in whatever
-application you plan to use this gem in.
+application you plan to use this gem in. If you have directly checked out this repository, you will need to rename
+"bplgeo.yml.sample" in that test/dummy/config folder to that "bplgeo.yml" and fill in the values you have. Then using
+"rake" in the root of the checkout out directly will run unit tests.
 
 ## Usage
 
@@ -32,14 +34,28 @@ For parsing of a LCSH subject (or similar) with geographic data do:
 
     Bplgeo.parse('<string>', true)
 
-For non-LCSH parsing, all of that is in the Bplgeo::Parser functions.
+Once that is complete, any coordinates returned will be near-exact location coordinates, otherwise that is left blank.
+<<Talk about keeping original string here>>. In addition, you may have received a tgn_id or a geonames_id (if those
+are configured and a match was found). To get the hierarchy, official coordinates, and other information, use the
+functions below:
+
+    Bplgeo::Geonames.get_geoname_data(geonames_id)
+
+    Bplgeo::Geonames.get_tgn_data(tgn_id)
 
 The are also several functions in the Bplgeo::Standardizer that may be useful. For instance, there is a geographic list
 dedupper. So, if you have ['Saigon, Vietnam', 'Saigon (Vietnam)'], it can reduce that down to just ['Saigon, Vietnam'].
 In addition, passing "true" as the second variable will eliminate less specific cases, or an array of
 ['Saigon, Vietnam', 'Saigon (Vietnam)', 'Vietnam'] would return the same end result.
 
+Within Bplgeo::Constants, there is a town listing for Massachusetts that one can use by the following: <<example here>>.
+Feel free to add your own location to this as a potential shortcut from hitting web APIs.
+
+For direct access to various geographic APIs, see Bplgeo::Parser.
+
 Most of the LCSH functions are in: Bplgeo::LCSH.
+
+Most of the Geonames functions are in: Bplgeo::Geonames
 
 ## Contributing
 

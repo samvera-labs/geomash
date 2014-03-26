@@ -1116,3 +1116,82 @@ BplgeoTest: test_truth
 ParserTest: test_google_parser
 ------------------------------
   [1m[35m (0.2ms)[0m  rollback transaction
+  [1m[36m (0.4ms)[0m  [1mbegin transaction[0m
+----------------------
+BplgeoTest: test_parse
+----------------------
+ETHON: Libcurl initialized
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=10.009568
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=2.034581
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=7.080771
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.755952
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.141607
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=3.742695
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.97489
+  [1m[35m (0.1ms)[0m  rollback transaction
+  [1m[36m (0.1ms)[0m  [1mbegin transaction[0m
+----------------------
+BplgeoTest: test_truth
+----------------------
+  [1m[35m (0.1ms)[0m  rollback transaction
+  [1m[36m (0.1ms)[0m  [1mbegin transaction[0m
+------------------------------
+ParserTest: test_google_parser
+------------------------------
+  [1m[35m (0.5ms)[0m  rollback transaction
+  [1m[36m (0.4ms)[0m  [1mbegin transaction[0m
+----------------------
+BplgeoTest: test_parse
+----------------------
+ETHON: Libcurl initialized
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=5.029524
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.49329599999999996
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=2.681167
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.217798
+  [1m[35m (0.3ms)[0m  rollback transaction
+  [1m[36m (0.4ms)[0m  [1mbegin transaction[0m
+----------------------
+BplgeoTest: test_parse
+----------------------
+ETHON: Libcurl initialized
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=1.017196
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.290384
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=1.227452
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.13324100000000005
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.19972999999999996
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.256967
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.5927910000000001
+  [1m[35m (0.1ms)[0m  rollback transaction
+  [1m[36m (0.1ms)[0m  [1mbegin transaction[0m
+----------------------
+BplgeoTest: test_truth
+----------------------
+  [1m[35m (0.1ms)[0m  rollback transaction
+  [1m[36m (0.1ms)[0m  [1mbegin transaction[0m
+------------------------------
+ParserTest: test_google_parser
+------------------------------
+  [1m[35m (0.3ms)[0m  rollback transaction
+  [1m[36m (0.4ms)[0m  [1mbegin transaction[0m
+----------------------
+BplgeoTest: test_parse
+----------------------
+ETHON: Libcurl initialized
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=1.324856
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.318018
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=4.017716
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.366681
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.250961
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.446395
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=17.981348
+  [1m[35m (0.2ms)[0m  rollback transaction
+  [1m[36m (0.1ms)[0m  [1mbegin transaction[0m
+----------------------
+BplgeoTest: test_truth
+----------------------
+  [1m[35m (0.1ms)[0m  rollback transaction
+  [1m[36m (0.1ms)[0m  [1mbegin transaction[0m
+------------------------------
+ParserTest: test_google_parser
+------------------------------
+  [1m[35m (0.3ms)[0m  rollback transaction
