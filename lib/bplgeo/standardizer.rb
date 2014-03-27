@@ -136,21 +136,25 @@ module Bplgeo
     def self.parsed_and_original_check(geo_hash)
       term = geo_hash[:standardized_term]
 
+      if geo_hash[:street_part].present? || geo_hash[:coords].present?
+        return true
+      end
+
       #Keep original string if three parts at least or if there is a number in the term.
       #TODO: Make this better!
       if (term.split(',').length >= 3 && geo_hash[:neighborhood_part].blank?) || (term.split(',').length >= 2 && geo_hash[:city_part].blank?) || term.split(',').length >= 4 || term.match(/\d/).present?
-        geo_hash[:term_differs_from_tgn] = true
+        return true
       end
 
       if geo_hash[:country_part] != 'United States'
         if geo_hash[:city_part].blank? && geo_hash[:state_part].blank?
           #Currently do noting
         elsif !((geo_hash[:city_part].present? && term.to_ascii.downcase.include?(geo_hash[:city_part].to_ascii.downcase)) || (geo_hash[:state_part].present? && term.to_ascii.downcase.include?(geo_hash[:state_part].to_ascii.downcase)))
-         geo_hash[:term_differs_from_tgn] = true
+         return true
         end
       end
 
-      return geo_hash
+      return false
     end
 
 

@@ -8,11 +8,11 @@ module Bplgeo
     end
 
     def self.getty_username
-      bplgeo_config[:getty_username]
+      bplgeo_config[:getty_username] || '<username>'
     end
 
     def self.getty_password
-      bplgeo_config[:getty_password]
+      bplgeo_config[:getty_password] || '<password>'
     end
 
     # retrieve data from Getty TGN to populate <mods:subject auth="tgn">
@@ -27,6 +27,7 @@ module Bplgeo
           coords = {}
           coords[:latitude] = tgnrec.at_xpath("//Latitude/Decimal").children.to_s
           coords[:longitude] = tgnrec.at_xpath("//Longitude/Decimal").children.to_s
+          coords[:combined] = coords[:latitude] + ',' + coords[:longitude]
         else
           coords = nil
         end
@@ -141,11 +142,15 @@ module Bplgeo
     end
 
     def self.tgn_id_from_geo_hash(geo_hash)
+      return nil if Bplgeo::TGN.getty_username == '<username>'
+
+      geo_hash = geo_hash.clone
+
       max_retry = 3
       sleep_time = 60 # In seconds
       retry_count = 0
 
-      geo_hash = Bplgeo::Standardizer.parsed_and_original_check(geo_hash)
+      return_hash = {}
 
       state_part = geo_hash[:state_part]
 
@@ -197,7 +202,7 @@ module Bplgeo
         second_top_match_term = ["#{sp} (state)", "#{sp} (department)", "#{sp} (governorate)", "#{sp} (territory)", "#{sp} (dependent state)", "#{sp} (union territory)", "#{sp} (national district)",  "#{sp} (province)"]
         match_term = neighborhood_part.to_ascii.downcase
       else
-        return geo_hash
+        return nil
       end
 
       begin
@@ -224,7 +229,7 @@ module Bplgeo
             geo_hash = tgn_id_from_geo_hash(geo_hash)
           end
 
-          return geo_hash
+          return nil
         end
 
         #If only one result, then not array. Otherwise array....
@@ -236,14 +241,14 @@ module Bplgeo
 
           #FIXME: Term should check for the correct level... temporary fix...
           if current_term == match_term && top_match_term.any? { |top_match| subject.Preferred_Parent.text.to_ascii.downcase.include? top_match }
-            geo_hash[:tgn_id] = subject.Subject_ID.text
+            return_hash[:id] = subject.Subject_ID.text
           #Check alternative term ids
           elsif alternative_terms.present? && alternative_terms.children.any? { |alt_term| alt_term.text.to_ascii.downcase.strip == match_term} && top_match_term.any? { |top_match| subject.Preferred_Parent.text.to_ascii.downcase.include? top_match }
-            geo_hash[:tgn_id] = subject.Subject_ID.text
+            return_hash[:id] = subject.Subject_ID.text
           elsif current_term == match_term && second_top_match_term.any? { |top_match| subject.Preferred_Parent.text.to_ascii.downcase.include? top_match }
-            geo_hash[:tgn_id] = subject.Subject_ID.text
+            return_hash[:id] = subject.Subject_ID.text
           elsif alternative_terms.present? && alternative_terms.children.any? { |alt_term| alt_term.text.to_ascii.downcase.strip == match_term} && second_top_match_term.any? { |top_match| subject.Preferred_Parent.text.to_ascii.downcase.include? top_match }
-            geo_hash[:tgn_id] = subject.Subject_ID.text
+            return_hash[:id] = subject.Subject_ID.text
           end
         else
          parsed_xml.Vocabulary.Subject.each do |subject|
@@ -252,39 +257,39 @@ module Bplgeo
             alternative_terms = subject.elements.any? { |node| node.name == 'Term' } ? subject.Term : ''
 
             if current_term == match_term && top_match_term.any? { |top_match| subject.Preferred_Parent.text.to_ascii.downcase.include? top_match }
-              geo_hash[:tgn_id] = subject.Subject_ID.text
+              return_hash[:id] = subject.Subject_ID.text
             end
           end
 
-          if geo_hash[:tgn_id].blank?
+          if return_hash[:id].blank?
             parsed_xml.Vocabulary.Subject.each do |subject|
               current_term = subject.Preferred_Term.text.gsub(/\(.*\)/, '').to_ascii.downcase.strip
               alternative_terms = subject.elements.any? { |node| node.name == 'Term' } ? subject.Term : ''
 
               if alternative_terms.present? && alternative_terms.children.any? { |alt_term| alt_term.text.to_ascii.downcase.strip == match_term} && top_match_term.any? { |top_match| subject.Preferred_Parent.text.to_ascii.downcase.include? top_match }
-                geo_hash[:tgn_id] = subject.Subject_ID.text
+                return_hash[:id] = subject.Subject_ID.text
               end
             end
           end
 
-          if geo_hash[:tgn_id].blank?
+          if return_hash[:id].blank?
             parsed_xml.Vocabulary.Subject.each do |subject|
               current_term = subject.Preferred_Term.text.gsub(/\(.*\)/, '').to_ascii.downcase.strip
               alternative_terms = subject.elements.any? { |node| node.name == 'Term' } ? subject.Term : ''
 
               if current_term == match_term && second_top_match_term.any? { |top_match| subject.Preferred_Parent.text.to_ascii.downcase.include? top_match }
-                geo_hash[:tgn_id] = subject.Subject_ID.text
+                return_hash[:id] = subject.Subject_ID.text
               end
             end
           end
 
-          if geo_hash[:tgn_id].blank?
+          if return_hash[:id].blank?
             parsed_xml.Vocabulary.Subject.each do |subject|
               current_term = subject.Preferred_Term.text.gsub(/\(.*\)/, '').to_ascii.downcase.strip
               alternative_terms = subject.elements.any? { |node| node.name == 'Term' } ? subject.Term : ''
 
               if alternative_terms.present? && alternative_terms.children.any? { |alt_term| alt_term.text.to_ascii.downcase.strip == match_term} && second_top_match_term.any? { |top_match| subject.Preferred_Parent.text.to_ascii.downcase.include? top_match }
-                geo_hash[:tgn_id] = subject.Subject_ID.text
+                return_hash[:id] = subject.Subject_ID.text
               end
             end
           end
@@ -296,24 +301,14 @@ module Bplgeo
         raise 'TGN Server appears to not be responding for Geographic query: ' + term
       end
 
-
-      return geo_hash
-    end
-
-    #Only returns one result for now...
-    #Need to avoid cases like "Boston" and "East Boston"
-    def self.state_town_lookup(state_key, string)
-      return_tgn_id = nil
-      matched_terms_count = 0
-      matching_towns = Bplgeo::Constants::STATE_TOWN_TGN_IDS[state_key.to_sym].select {|hash| string.include?(hash[:location_name])}
-      matching_towns.each do |matching_town|
-        if matching_town[:location_name].split(' ').length > matched_terms_count
-          return_tgn_id = matching_town[:tgn_id]
-          matched_terms_count = matched_terms_count
-        end
+      if return_hash.present?
+        return_hash[:original_string_differs] = Bplgeo::Standardizer.parsed_and_original_check(geo_hash)
+        return return_hash
+      else
+        return nil
       end
-
-      return return_tgn_id
     end
+
+
   end
 end

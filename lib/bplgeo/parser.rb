@@ -23,6 +23,7 @@ module Bplgeo
     #Note: Limited to only looking at United States places...
     def self.parse_bing_api(term, parse_term_flag=false)
       return_hash = {}
+      retry_count = 3
 
       #Skip if no bing_key... possibly move this elsewhere?
       return return_hash if self.bing_key == '<bing_key>'
@@ -50,8 +51,12 @@ module Bplgeo
         return {}
       end
 
-      Geocoder.configure(:lookup => :bing,:api_key => self.bing_key,:timeout => self.timeout)
+      Geocoder.configure(:lookup => :bing,:api_key => self.bing_key,:timeout => self.timeout, :always_raise => :all)
       bing_api_result = Geocoder.search(term)
+
+    rescue SocketError => e
+      retry unless (retry_count -= 1).zero?
+    else
 
       #Use only for United States results... international results are inaccurate.
       if bing_api_result.present? && bing_api_result.first.data["address"]["countryRegion"] == 'United States'
@@ -63,7 +68,9 @@ module Bplgeo
         if bing_api_result.first.data["address"]["addressLine"].present?
           return_hash[:term_differs_from_tgn] = true
           return_hash[:street_part] = bing_api_result.first.data["address"]["addressLine"]
-          return_hash[:coordinates] = bing_api_result.first.data["geocodePoints"].first["coordinates"].first.to_s + ',' + bing_api_result.first.data["geocodePoints"].first["coordinates"].last.to_s
+          return_hash[:coords] = {:latitude=>bing_api_result.first.data["geocodePoints"].first["coordinates"].first.to_s,
+                                       :longitude=>bing_api_result.first.data["geocodePoints"].first["coordinates"].last.to_s,
+                                       :combined=>bing_api_result.first.data["geocodePoints"].first["coordinates"].first.to_s + ',' + bing_api_result.first.data["geocodePoints"].first["coordinates"].last.to_s}
         end
 
         return_hash[:country_part] = bing_api_result.first.data["address"]["countryRegion"]
@@ -86,6 +93,7 @@ module Bplgeo
     #Mapquest allows unlimited requests - start here?
     def self.parse_mapquest_api(term, parse_term_flag=false)
       return_hash = {}
+      retry_count = 3
 
       #Skip if no bing_key... possibly move this elsewhere?
       return return_hash if self.bing_key == '<mapquest_key>'
@@ -102,7 +110,7 @@ module Bplgeo
       return_hash[:standardized_term] = term
 
       #Mapquest returns bad data for: Manchester, Mass.
-      if term.include?('Manchester')
+      if term.include?('Manchester') || term.include?('Atlanta, MI')
         return {}
       end
 
@@ -112,17 +120,23 @@ module Bplgeo
         return {}
       end
 
-      Geocoder.configure(:lookup => :mapquest,:api_key => self.mapquest_key,:timeout => self.timeout)
+      Geocoder.configure(:lookup => :mapquest,:api_key => self.mapquest_key,:timeout => self.timeout, :always_raise => :all)
+
       mapquest_api_result = Geocoder.search(term)
+    rescue SocketError => e
+      retry unless (retry_count -= 1).zero?
+    else
 
 
       #If this call returned a result...
       if mapquest_api_result.present?
 
         if mapquest_api_result.first.data["street"].present?
-          return_hash[:term_differs_from_tgn] = true
+          #return_hash[:term_differs_from_tgn] = true
           return_hash[:street_part] = mapquest_api_result.first.data["street"]
-          return_hash[:coordinates] = mapquest_api_result.first.data['latLng']['lat'].to_s + ',' + mapquest_api_result.first.data['latLng']['lng'].to_s
+          return_hash[:coords] = {:latitude=>mapquest_api_result.first.data['latLng']['lat'].to_s,
+                                       :longitude=>mapquest_api_result.first.data['latLng']['lng'].to_s,
+                                       :combined=>mapquest_api_result.first.data['latLng']['lat'].to_s + ',' + mapquest_api_result.first.data['latLng']['lng'].to_s}
         end
 
         return_hash[:country_part] = Country.new(mapquest_api_result.first.data["adminArea1"]).name
@@ -151,6 +165,7 @@ module Bplgeo
     #Seems like it sets a partial_match=>true in the data section...
     def self.parse_google_api(term, parse_term_flag=false)
       return_hash = {}
+      retry_count = 3
 
       return_hash[:original_term] = term
 
@@ -164,8 +179,13 @@ module Bplgeo
 
       return_hash[:standardized_term] = term
 
-      ::Geocoder.configure(:lookup => :google,:api_key => nil,:timeout => self.timeout)
+      ::Geocoder.configure(:lookup => :google,:api_key => nil,:timeout => self.timeout, :always_raise => :all)
+
       google_api_result = ::Geocoder.search(term)
+    rescue SocketError => e
+      retry unless (retry_count -= 1).zero?
+    else
+
 
       #Check if only a partial match. To avoid errors, strip out the first part and try again...
       #Need better way to check for street endings. See: http://pe.usps.gov/text/pub28/28apc_002.htm
@@ -180,10 +200,12 @@ module Bplgeo
         #Types: street number, route, neighborhood, establishment, transit_station, bus_station
         google_api_result.first.data["address_components"].each do |result|
           if (result['types'] & ['street number', 'route', 'neighborhood', 'establishment', 'transit_station', 'bus_station']).present?
-            return_hash[:term_differs_from_tgn] = true
+            #return_hash[:term_differs_from_tgn] = true
             #TODO: Not implemented for Google results right now.
             return_hash[:street_part] = 'TODO: Not Implemented for Google Results'
-            return_hash[:coordinates] = google_api_result.first.data['geometry']['location']['lat'].to_s + ',' + google_api_result.first.data['geometry']['location']['lng'].to_s
+            return_hash[:coords] = {:latitude=>google_api_result.first.data['geometry']['location']['lat'].to_s,
+                                         :longitude=>google_api_result.first.data['geometry']['location']['lng'].to_s,
+                                         :combined=>google_api_result.first.data['geometry']['location']['lat'].to_s + ',' + google_api_result.first.data['geometry']['location']['lng'].to_s}
           elsif (result['types'] & ['country']).present?
             return_hash[:country_part] = result['long_name']
           elsif (result['types'] & ['administrative_area_level_1']).present?

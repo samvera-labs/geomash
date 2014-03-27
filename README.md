@@ -11,13 +11,15 @@ Add this line to your application's Gemfile:
 
 The following needs to be obtained for optimal configuration. If any of these are skipped, those resources won't be available.
 
-    Mapquest API key: http://developer.mapquest.com/web/products/open
-
     Bing API key: http://www.bingmapsportal.com
 
     geonames API account: http://www.geonames.org/login
 
     TGN API account: ???? (believe it will be available free soon)
+
+    Mapquest API key: http://developer.mapquest.com/web/products/open
+    (NOTE: Recommended to skip this API key. I can't get reliable / good results. I've left in support just in case
+    someone wants to still use it or can improve this).
 
 You will need to use the "bplgeo.yml.sample" file in the test/dummy/config folder as "bplgeo.yml" in whatever
 application you plan to use this gem in. If you have directly checked out this repository, you will need to rename
@@ -39,7 +41,7 @@ Once that is complete, any coordinates returned will be near-exact location coor
 are configured and a match was found). To get the hierarchy, official coordinates, and other information, use the
 functions below:
 
-    Bplgeo::Geonames.get_geoname_data(geonames_id)
+    Bplgeo::Geonames.get_geonames_data(geonames_id)
 
     Bplgeo::Geonames.get_tgn_data(tgn_id)
 
@@ -48,8 +50,14 @@ dedupper. So, if you have ['Saigon, Vietnam', 'Saigon (Vietnam)'], it can reduce
 In addition, passing "true" as the second variable will eliminate less specific cases, or an array of
 ['Saigon, Vietnam', 'Saigon (Vietnam)', 'Vietnam'] would return the same end result.
 
-Within Bplgeo::Constants, there is a town listing for Massachusetts that one can use by the following: <<example here>>.
-Feel free to add your own location to this as a potential shortcut from hitting web APIs.
+Within Bplgeo::TownLookup, there is a town listing for Massachusetts that one can use by the following:
+
+    Bplgeo::TownLookup.state_town_lookup('MA', <string to parse>)
+
+Feel free to add your own location to this as a potential shortcut from hitting web APIs. Currently this only supports
+TGN and needs to be refactored to support other needs.
+
+## Locations of some code bits to use pieces of this:
 
 For direct access to various geographic APIs, see Bplgeo::Parser.
 
