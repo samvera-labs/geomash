@@ -9,7 +9,7 @@ module Bplgeo
       matching_towns.each do |matching_town|
         if matching_town[:location_name].split(' ').length > matched_terms_count
           return_tgn_id = matching_town[:tgn_id]
-          matched_terms_count = matched_terms_count
+          matched_terms_count = matching_town[:location_name].split(' ').length
         end
       end
 

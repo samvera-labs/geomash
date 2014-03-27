@@ -80,7 +80,7 @@ module Bplgeo
     #Attempt to dedup a list of geographic areas.
     #FIXME: Horrendous first pass.
     #Aggresive flag removes less specific matches. IE. ['Hanoi, Vietnam' and 'Vietnam'] would return just ['Hanoi, Vietnam']
-    def self.dedup_geo(geo_list, aggresive=false)
+    def self.dedup_geo(geo_list, aggressive=false)
       geo_list = geo_list.clone
 
        base_word_geo_list = []
@@ -113,7 +113,9 @@ module Bplgeo
         }
 
         matched_words_count.each_with_index do |matched_count, matched_index|
-          if matched_count ==  base_word_geo_list[index].split(' ').size && ((base_word_geo_list[matched_index].split(' ').size < base_word_geo_list[index].split(' ').size && aggresive) || (base_word_geo_list[matched_index].split(' ').size == base_word_geo_list[index].split(' ').size))
+          matched_count ||= 0
+
+          if (matched_count ==  base_word_geo_list[matched_index].split(' ').size) && ((base_word_geo_list[matched_index].split(' ').size < base_word_geo_list[index].split(' ').size && aggressive) || (base_word_geo_list[matched_index].split(' ').size == base_word_geo_list[index].split(' ').size))
             if current_best_term.split(',').size < geo_list[matched_index].split(',').size || (current_best_term.size+1 < geo_list[matched_index].size && !geo_list[matched_index].include?('('))
               current_best_term =  geo_list[matched_index]
               indexes_to_remove << current_best_term_index
