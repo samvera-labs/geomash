@@ -1,7 +1,9 @@
 # Bplgeo
 
-This is a geographic parsing library. Beyond regular parsing to mapquest api, bing api, and google api, it also can parse
-subject strings and query against TGN and geonames.
+This is a geographic parsing library. It is designed to take subject and other text strings and return hierarchical data
+along with coordinates for that string.
+
+Beyond regular parsing to mapquest api, bing api, and google api, it currently also supports TGN and Geonames.
 
 ## Installation
 
@@ -9,7 +11,8 @@ Add this line to your application's Gemfile:
 
     gem 'bpl_geo', :git=>'https://github.com/boston-library/Bplgeo.git'
 
-The following needs to be obtained for optimal configuration. If any of these are skipped, those resources won't be available.
+The following needs to be obtained for optimal configuration. If any of these are skipped, those resources won't be
+available.
 
     Bing API key: http://www.bingmapsportal.com
 
@@ -28,18 +31,22 @@ application you plan to use this gem in. If you have directly checked out this r
 
 ## Usage
 
-For the full parsing of a known geographic string, do:
+For the full parsing of a known geographic string (for example, "421 S Salisbury St, Raleigh, NC 27601" or
+"Paris, France"), do that following:
 
     Bplgeo.parse('<string>')
 
-For parsing of a LCSH subject (or similar) with geographic data do:
+For parsing of a LCSH subject (or similar) with geographic data located in the USA currently (such as
+"Chicopee (Mass.) -- City Directories", "Women--Employment--Massachusetts--Holyoke", or "Palmer (Mass) - history"),
+then pass in a second parameter to indicate an attempt to parse the string:
 
     Bplgeo.parse('<string>', true)
 
 Once that is complete, any coordinates returned will be near-exact location coordinates, otherwise that is left blank.
-<<Talk about keeping original string here>>. In addition, you may have received a tgn_id or a geonames_id (if those
-are configured and a match was found). To get the hierarchy, official coordinates, and other information, use the
-functions below:
+In addition, you may have received a tgn_id or a geonames_id (if those are configured and a match was found) along with
+if those entries can completely replace the geographic data of the original string (for example,
+"421 S Salisbury St, Raleigh, NC 27601" has a street address part that those hierarchies cannot duplicate).
+To get the hierarchy, official coordinates, and other information, use the functions below:
 
     Bplgeo::Geonames.get_geonames_data(geonames_id)
 
