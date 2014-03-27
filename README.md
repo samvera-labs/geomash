@@ -9,7 +9,7 @@ Beyond regular parsing to mapquest api, bing api, and google api, it currently a
 
 Add this line to your application's Gemfile:
 
-    gem 'bpl_geo', :git=>'https://github.com/boston-library/Bplgeo.git'
+    gem 'bplgeo'
 
 The following needs to be obtained for optimal configuration. If any of these are skipped, those resources won't be
 available.

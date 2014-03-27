@@ -54,6 +54,7 @@ Gemfile.lock
 /fedora_conf/*
 /hydra-jetty/*
 /*jetty*
+/test/dummy/log/*
 
 # Ignore edited Linux files #
 #############################
