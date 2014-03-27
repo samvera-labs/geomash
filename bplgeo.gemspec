@@ -10,8 +10,8 @@ Gem::Specification.new do |s|
   s.authors     = ["Boston Public Library"]
   s.email       = ["sanderson@bpl.org"]
   s.homepage    = "http://www.bpl.org"
-  s.summary     = "Parse string for potential geographic matches and return that data along with the TGN ID."
-  s.description = "Parse string for potential geographic matches and return that data along with the TGN ID."
+  s.summary     = "Parse string for potential geographic matches and return that data along with the TGN ID and Geonames ID."
+  s.description = "Parse string for potential geographic matches and return that data along with the TGN ID and Geonames ID."
 
   s.files = Dir["{app,config,db,lib}/**/*", "Rakefile", "README.rdoc"]
   s.test_files = Dir["test/**/*"]

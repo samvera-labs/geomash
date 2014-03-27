@@ -21,6 +21,10 @@ pickle-email-*.html
 ################################
 bplgeo.yml
 
+# Generated gems #
+################################
+bplgeo*.gem
+
 # Files to ignore by default in Git #
 #####################################
 *.pdf

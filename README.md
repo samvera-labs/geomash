@@ -38,7 +38,9 @@ For the full parsing of a known geographic string (for example, "421 S Salisbury
 
 For parsing of a LCSH subject (or similar) with geographic data located in the USA currently (such as
 "Chicopee (Mass.) -- City Directories", "Women--Employment--Massachusetts--Holyoke", or "Palmer (Mass) - history"),
-then pass in a second parameter to indicate an attempt to parse the string:
+then pass in a second parameter of true to indicate an attempt to parse the string. NOTE: As the BPL is a USA based
+organization, this is currently limited to USA locations. I'd be happy to work with an international entity to expand
+this parsing. :)
 
     Bplgeo.parse('<string>', true)
 
