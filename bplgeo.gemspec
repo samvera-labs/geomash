@@ -22,5 +22,6 @@ Gem::Specification.new do |s|
   s.add_dependency 'unidecoder'
   s.add_dependency 'typhoeus'
   s.add_dependency 'nokogiri'
+  s.add_dependency 'htmlentities'
   s.add_development_dependency "sqlite3"
 end

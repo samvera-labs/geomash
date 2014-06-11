@@ -10,6 +10,7 @@ module Bplgeo
   require "unidecoder"
   require "typhoeus"
   require "nokogiri"
+  require "htmlentities"
 
   def self.parse(term,parse_term=false)
     return {} if term.blank?
