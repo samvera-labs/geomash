@@ -96,7 +96,7 @@ module Bplgeo
       retry_count = 3
 
       #Skip if no bing_key... possibly move this elsewhere?
-      return return_hash if self.bing_key == '<mapquest_key>'
+      return return_hash if self.mapquest_key == '<mapquest_key>'
 
       return_hash[:original_term] = term
 
