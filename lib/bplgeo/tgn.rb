@@ -191,6 +191,28 @@ Neighborhood: (Boston)
 Provinces:
 http://vocab.getty.edu/aat/300000774
 
+Departments:
+http://vocab.getty.edu/aat/300000772
+
+Governates:
+http://vocab.getty.edu/aat/300235093
+
+Territories:
+http://vocab.getty.edu/aat/300135982
+
++ http://vocab.getty.edu/resource/getty/search?q=territory&luceneIndex=Brief&indexDataset=AAT&_form=%2Fresource%2Fgetty%2Fsearch
+
+dependent state:
+http://vocab.getty.edu/aat/300387176
+
+
+union territory:
+http://vocab.getty.edu/aat/300387122
+
+national district:
+http://vocab.getty.edu/aat/300387081
+
+
 =end
 
 =begin
