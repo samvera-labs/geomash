@@ -169,6 +169,108 @@ module Bplgeo
       top_match_term = ''
       match_term = nil
 
+=begin
+      81010/nation
+      81175/state
+      81165/region
+      84251/neighborhood
+
+nations
+<http://vocab.getty.edu/tgn/7012149> <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300128207>
+
+States (political divisions):
+<http://vocab.getty.edu/tgn/7007517> <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000776> .
+
+Counties: (Suffolk - http://vocab.getty.edu/aat/300000771)
+<http://vocab.getty.edu/tgn/1002923> <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000771> .
+
+Neighborhood: (Boston)
+<http://vocab.getty.edu/tgn/7013445> <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300008347> .
+
+
+Provinces:
+http://vocab.getty.edu/aat/300000774
+
+=end
+
+=begin
+Broader (Suffolk of Boston):
+<http://vocab.getty.edu/tgn/7013445> <http://www.w3.org/2004/02/skos/core#broader> <http://vocab.getty.edu/tgn/1002923> .
+
+
+http://vocab.getty.edu/sparql?query=SELECT+%3Ftitle%0D%0AWHERE%0D%0A%7B%0D%0A++%3Chttp%3A%2F%2Fvocab.getty.edu%2Ftgn%2F7013445%3E+%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Felements%2F1.1%2Fidentifier%3E+%3Ftitle+.%0D%0A++%3Chttp%3A%2F%2Fvocab.getty.edu%2Ftgn%2F7013445%3E+%3Chttp%3A%2F%2Fvocab.getty.edu%2Fontology%23placeTypePreferred%3E+%3Chttp%3A%2F%2Fvocab.getty.edu%2Faat%2F300008347%3E+.%0D%0A%7D&_implicit=false&implicit=true&_equivalent=false&_form=%2Fsparql
+
+http://vocab.getty.edu/sparql.json?query=SELECT+%3Ftitle%0D%0AWHERE%0D%0A%7B%0D%0A++%3Chttp%3A%2F%2Fvocab.getty.edu%2Ftgn%2F7013445%3E+%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Felements%2F1.1%2Fidentifier%3E+%3Ftitle+.%0D%0A++%3Chttp%3A%2F%2Fvocab.getty.edu%2Ftgn%2F7013445%3E+%3Chttp%3A%2F%2Fvocab.getty.edu%2Fontology%23placeTypePreferred%3E+%3Chttp%3A%2F%2Fvocab.getty.edu%2Faat%2F300008347%3E+.%0D%0A%7D&_implicit=false&implicit=true&_equivalent=false&_form=%2Fsparql
+
+
+
+query = %{SELECT ?title
+WHERE
+{
+  <http://vocab.getty.edu/tgn/7013445> <http://purl.org/dc/elements/1.1/identifier> ?title .
+  <http://vocab.getty.edu/tgn/7013445> <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300008347> .
+}}
+
+ response = Typhoeus::Request.get("http://vocab.getty.edu/sparql.json", :params=>{:query=>query})
+
+
+# EXAMPLE FOR COUNTRIES
+
+country = "United States"
+
+query = %{SELECT ?identifier
+WHERE
+{
+  ?x <http://purl.org/dc/elements/1.1/identifier> ?identifier .
+  ?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300128207> .
+  {?x <http://www.w3.org/2004/02/skos/core#prefLabel> "#{country}"@en} UNION {?x <http://www.w3.org/2004/02/skos/core#prefLabel> "#{country}"} .
+}}
+
+ response = Typhoeus::Request.get("http://vocab.getty.edu/sparql.json", :params=>{:query=>query})
+as_json = JSON.parse(response.body)
+as_json["results"]["bindings"].first["identifier"]["value"]   #FIRST could be blank or list
+
+
+# EXAMPLE FOR STATES
+
+country = "United States"
+state = "South Carolina"
+
+query = %{SELECT ?identifier
+WHERE
+{
+  ?x <http://purl.org/dc/elements/1.1/identifier> ?identifier .
+  ?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000776> .
+  {?x <http://www.w3.org/2004/02/skos/core#prefLabel> "#{state}"@en} UNION {?x <http://www.w3.org/2004/02/skos/core#prefLabel> "#{state}"} .
+  ?x <http://vocab.getty.edu/ontology#parentString> ?parent_string .
+  FILTER regex(?parent_string, "#{country},", "i" )
+}}
+
+response = Typhoeus::Request.get("http://vocab.getty.edu/sparql.json", :params=>{:query=>query})
+
+
+
+# EXAMPLE FOR REGIONS - use TGN 7001070 as start
+
+country = "Viet Nam"
+state = "Hà So'n Bình, Tỉnh"
+
+query = %{SELECT ?identifier
+WHERE
+{
+  ?x <http://purl.org/dc/elements/1.1/identifier> ?identifier .
+  ?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000774> .
+  {?x <http://www.w3.org/2004/02/skos/core#Label> "#{state}"@en} UNION {?x <http://www.w3.org/2004/02/skos/core#Label> "#{state}"} .
+  ?x <http://vocab.getty.edu/ontology#parentString> ?parent_string .
+  FILTER regex(?parent_string, "#{country},", "i" )
+}}
+
+response = Typhoeus::Request.get("http://vocab.getty.edu/sparql.json", :params=>{:query=>query})
+
+
+=end
+
+
       if city_part.blank? && state_part.blank?
         # Limit to nations
         place_type = 81010
