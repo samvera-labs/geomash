@@ -281,7 +281,13 @@ query = %{SELECT ?identifier
 WHERE
 {
   ?x <http://purl.org/dc/elements/1.1/identifier> ?identifier .
-  ?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000774> .
+  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000774>} UNION
+  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000772>} UNION
+  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300235093>} UNION
+  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300135982>} UNION
+  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387176>} UNION
+  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387122>} UNION
+  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387081>} .
   {?x <http://www.w3.org/2004/02/skos/core#Label> "#{state}"@en} UNION {?x <http://www.w3.org/2004/02/skos/core#Label> "#{state}"} .
   ?x <http://vocab.getty.edu/ontology#parentString> ?parent_string .
   FILTER regex(?parent_string, "#{country},", "i" )
