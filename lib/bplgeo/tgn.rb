@@ -174,6 +174,7 @@ module Bplgeo
       81175/state
       81165/region
       84251/neighborhood
+      83002/inhabited place
 
 nations
 <http://vocab.getty.edu/tgn/7012149> <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300128207>
@@ -274,7 +275,7 @@ response = Typhoeus::Request.get("http://vocab.getty.edu/sparql.json", :params=>
 
 # EXAMPLE FOR REGIONS - use TGN 7001070 as start
 
-country = "Viet Nam"
+country = "Việt Nam"
 state = "Hà So'n Bình, Tỉnh"
 
 query = %{SELECT ?identifier
@@ -288,12 +289,73 @@ WHERE
   {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387176>} UNION
   {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387122>} UNION
   {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387081>} .
-  {?x <http://www.w3.org/2004/02/skos/core#Label> "#{state}"@en} UNION {?x <http://www.w3.org/2004/02/skos/core#Label> "#{state}"} .
+  {?x <http://www.w3.org/2000/01/rdf-schema#label> "#{state}"@en} UNION {?x <http://www.w3.org/2000/01/rdf-schema#label> "#{state}"} .
   ?x <http://vocab.getty.edu/ontology#parentString> ?parent_string .
   FILTER regex(?parent_string, "#{country},", "i" )
 }}
 
+SELECT ?object_identifier
+WHERE
+{
+  ?x <http://purl.org/dc/elements/1.1/identifier> ?object_identifier .
+  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000774>} UNION
+  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000772>} UNION
+  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300235093>} UNION
+  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300135982>} UNION
+  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387176>} UNION
+  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387122>} UNION
+  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387081>} .
+  {?x <http://www.w3.org/2000/01/rdf-schema#label> "Hà So'n Bình, Tỉnh"@en} UNION {?x <http://www.w3.org/2000/01/rdf-schema#label> "Hà So'n Bình, Tỉnh"} .
+  ?x <http://vocab.getty.edu/ontology#broaderPreferredExtended> ?parent_country .
+  {
+    SELECT ?parent_country ?identifier_country
+    WHERE {
+       ?parent_country <http://purl.org/dc/elements/1.1/identifier> ?identifier_country .
+       ?parent_country <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300128207> .
+      { ?parent_country <http://www.w3.org/2000/01/rdf-schema#label> "Viet Nam"@en} UNION {?parent_country <http://www.w3.org/2000/01/rdf-schema#label> "Viet Nam"} .
+    } GROUP BY ?parent_country ?identifier_country
+  }
+}
+
 response = Typhoeus::Request.get("http://vocab.getty.edu/sparql.json", :params=>{:query=>query})
+
+# EXAMPLE FOR CITIES
+
+country = "Việt Nam"
+state = "Hà So'n Bình, Tỉnh"
+city = "Hà Nội"
+
+query = %{SELECT ?identifier
+WHERE
+{
+  ?x <http://purl.org/dc/elements/1.1/identifier> ?identifier .
+  <http://vocab.getty.edu/tgn/7013445> <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300008347> .
+  {?x <http://www.w3.org/2000/01/rdf-schema#label> "#{city}"@en} UNION {?x <http://www.w3.org/2000/01/rdf-schema#label> "#{city}"} .
+  ?x <http://vocab.getty.edu/ontology#parentString> ?parent_string .
+  FILTER regex(?parent_string, "#{country},", "i" )
+}}
+
+
+
+
+
+# 5.1.6 Full Text Search Query
+PREFIX luc: <http://www.ontotext.com/owlim/lucene#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX gvp: <http://vocab.getty.edu/ontology#>
+PREFIX skosxl: <http://www.w3.org/2008/05/skos-xl#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX gvp_lang: <http://vocab.getty.edu/language/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+SELECT ?Subject ?Term ?Parents ?ScopeNote ?Type {
+  ?Subject luc:term "Boston"; a ?typ.
+  ?typ rdfs:subClassOf gvp:Subject; rdfs:label ?Type.
+  optional {?Subject gvp:prefLabelGVP [skosxl:literalForm ?Term]}
+  optional {?Subject gvp:parentStringAbbrev ?Parents}
+  optional {?Subject skos:scopeNote [dct:language gvp_lang:en; rdf:value ?ScopeNote]}}
+
+
 
 
 =end
