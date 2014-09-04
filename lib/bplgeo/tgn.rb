@@ -294,6 +294,32 @@ WHERE
   FILTER regex(?parent_string, "#{country},", "i" )
 }}
 
+query = %{SELECT ?object_identifier
+WHERE
+{
+  ?x <http://purl.org/dc/elements/1.1/identifier> ?object_identifier .
+  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000774>} UNION
+  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000772>} UNION
+  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300235093>} UNION
+  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300135982>} UNION
+  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387176>} UNION
+  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387122>} UNION
+  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387081>} .
+  {?x <http://www.w3.org/2000/01/rdf-schema#label> "#{state}"@en} UNION {?x <http://www.w3.org/2000/01/rdf-schema#label> "#{state}"} .
+  ?x <http://vocab.getty.edu/ontology#broaderPreferredExtended> ?parent_country .
+  {
+    SELECT ?parent_country ?identifier_country
+    WHERE {
+       ?parent_country <http://purl.org/dc/elements/1.1/identifier> ?identifier_country .
+       ?parent_country <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300128207> .
+      { ?parent_country <http://www.w3.org/2000/01/rdf-schema#label> "#{country}"@en} UNION {?parent_country <http://www.w3.org/2000/01/rdf-schema#label> "#{country}"} .
+    }
+  }
+}}
+
+(broken due to @vi... need to make optional maybe?)
+
+
 SELECT ?object_identifier
 WHERE
 {
@@ -313,7 +339,7 @@ WHERE
        ?parent_country <http://purl.org/dc/elements/1.1/identifier> ?identifier_country .
        ?parent_country <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300128207> .
       { ?parent_country <http://www.w3.org/2000/01/rdf-schema#label> "Viet Nam"@en} UNION {?parent_country <http://www.w3.org/2000/01/rdf-schema#label> "Viet Nam"} .
-    } GROUP BY ?parent_country ?identifier_country
+    }
   }
 }
 
