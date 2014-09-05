@@ -15,6 +15,53 @@ module Bplgeo
       bplgeo_config[:getty_password] || '<password>'
     end
 
+=begin
+      81010/nation
+      81175/state
+      81165/region
+      84251/neighborhood
+      83002/inhabited place
+
+      nations
+      <http://vocab.getty.edu/tgn/7012149> <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300128207>
+
+      States (political divisions):
+          <http://vocab.getty.edu/tgn/7007517> <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000776> .
+
+      Counties: (Suffolk - http://vocab.getty.edu/aat/300000771)
+      <http://vocab.getty.edu/tgn/1002923> <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000771> .
+
+      Neighborhood: (Boston)
+      <http://vocab.getty.edu/tgn/7013445> <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300008347> .
+
+
+      Provinces:
+          http://vocab.getty.edu/aat/300000774
+
+      Departments:
+          http://vocab.getty.edu/aat/300000772
+
+      Governates:
+          http://vocab.getty.edu/aat/300235093
+
+      Territories:
+          http://vocab.getty.edu/aat/300135982
+
+      + http://vocab.getty.edu/resource/getty/search?q=territory&luceneIndex=Brief&indexDataset=AAT&_form=%2Fresource%2Fgetty%2Fsearch
+
+      dependent state:
+                    http://vocab.getty.edu/aat/300387176
+
+
+      union territory:
+                http://vocab.getty.edu/aat/300387122
+
+      national district:
+                   http://vocab.getty.edu/aat/300387081
+=end
+
+
+
     # retrieve data from Getty TGN to populate <mods:subject auth="tgn">
     def self.get_tgn_data(tgn_id)
       tgn_response = Typhoeus::Request.get('http://vocabsservices.getty.edu/TGNService.asmx/TGNGetSubject?subjectID=' + tgn_id, userpwd: self.getty_username + ':' + self.getty_password)
@@ -166,259 +213,160 @@ module Bplgeo
 
       neighborhood_part = geo_hash[:neighborhood_part]
 
-      top_match_term = ''
-      match_term = nil
-
-=begin
-      81010/nation
-      81175/state
-      81165/region
-      84251/neighborhood
-      83002/inhabited place
-
-nations
-<http://vocab.getty.edu/tgn/7012149> <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300128207>
-
-States (political divisions):
-<http://vocab.getty.edu/tgn/7007517> <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000776> .
-
-Counties: (Suffolk - http://vocab.getty.edu/aat/300000771)
-<http://vocab.getty.edu/tgn/1002923> <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000771> .
-
-Neighborhood: (Boston)
-<http://vocab.getty.edu/tgn/7013445> <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300008347> .
-
-
-Provinces:
-http://vocab.getty.edu/aat/300000774
-
-Departments:
-http://vocab.getty.edu/aat/300000772
-
-Governates:
-http://vocab.getty.edu/aat/300235093
-
-Territories:
-http://vocab.getty.edu/aat/300135982
-
-+ http://vocab.getty.edu/resource/getty/search?q=territory&luceneIndex=Brief&indexDataset=AAT&_form=%2Fresource%2Fgetty%2Fsearch
-
-dependent state:
-http://vocab.getty.edu/aat/300387176
-
-
-union territory:
-http://vocab.getty.edu/aat/300387122
-
-national district:
-http://vocab.getty.edu/aat/300387081
-
-
-=end
-
-=begin
-Broader (Suffolk of Boston):
-<http://vocab.getty.edu/tgn/7013445> <http://www.w3.org/2004/02/skos/core#broader> <http://vocab.getty.edu/tgn/1002923> .
-
-
-http://vocab.getty.edu/sparql?query=SELECT+%3Ftitle%0D%0AWHERE%0D%0A%7B%0D%0A++%3Chttp%3A%2F%2Fvocab.getty.edu%2Ftgn%2F7013445%3E+%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Felements%2F1.1%2Fidentifier%3E+%3Ftitle+.%0D%0A++%3Chttp%3A%2F%2Fvocab.getty.edu%2Ftgn%2F7013445%3E+%3Chttp%3A%2F%2Fvocab.getty.edu%2Fontology%23placeTypePreferred%3E+%3Chttp%3A%2F%2Fvocab.getty.edu%2Faat%2F300008347%3E+.%0D%0A%7D&_implicit=false&implicit=true&_equivalent=false&_form=%2Fsparql
-
-http://vocab.getty.edu/sparql.json?query=SELECT+%3Ftitle%0D%0AWHERE%0D%0A%7B%0D%0A++%3Chttp%3A%2F%2Fvocab.getty.edu%2Ftgn%2F7013445%3E+%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Felements%2F1.1%2Fidentifier%3E+%3Ftitle+.%0D%0A++%3Chttp%3A%2F%2Fvocab.getty.edu%2Ftgn%2F7013445%3E+%3Chttp%3A%2F%2Fvocab.getty.edu%2Fontology%23placeTypePreferred%3E+%3Chttp%3A%2F%2Fvocab.getty.edu%2Faat%2F300008347%3E+.%0D%0A%7D&_implicit=false&implicit=true&_equivalent=false&_form=%2Fsparql
-
-
-
-query = %{SELECT ?title
-WHERE
-{
-  <http://vocab.getty.edu/tgn/7013445> <http://purl.org/dc/elements/1.1/identifier> ?title .
-  <http://vocab.getty.edu/tgn/7013445> <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300008347> .
-}}
-
- response = Typhoeus::Request.get("http://vocab.getty.edu/sparql.json", :params=>{:query=>query})
-
-
-# EXAMPLE FOR COUNTRIES
-
-country = "United States"
-
-query = %{SELECT ?identifier
-WHERE
-{
-  ?x <http://purl.org/dc/elements/1.1/identifier> ?identifier .
-  ?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300128207> .
-  {?x <http://www.w3.org/2004/02/skos/core#prefLabel> "#{country}"@en} UNION {?x <http://www.w3.org/2004/02/skos/core#prefLabel> "#{country}"} .
-}}
-
- response = Typhoeus::Request.get("http://vocab.getty.edu/sparql.json", :params=>{:query=>query})
-as_json = JSON.parse(response.body)
-as_json["results"]["bindings"].first["identifier"]["value"]   #FIRST could be blank or list
-
-
-# EXAMPLE FOR STATES
-
-country = "United States"
-state = "South Carolina"
-
-query = %{SELECT ?identifier
-WHERE
-{
-  ?x <http://purl.org/dc/elements/1.1/identifier> ?identifier .
-  ?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000776> .
-  {?x <http://www.w3.org/2004/02/skos/core#prefLabel> "#{state}"@en} UNION {?x <http://www.w3.org/2004/02/skos/core#prefLabel> "#{state}"} .
-  ?x <http://vocab.getty.edu/ontology#parentString> ?parent_string .
-  FILTER regex(?parent_string, "#{country},", "i" )
-}}
-
-response = Typhoeus::Request.get("http://vocab.getty.edu/sparql.json", :params=>{:query=>query})
-
-
-
-# EXAMPLE FOR REGIONS - use TGN 7001070 as start
-
-country = "Việt Nam"
-state = "Hà So'n Bình, Tỉnh"
-
-query = %{SELECT ?identifier
-WHERE
-{
-  ?x <http://purl.org/dc/elements/1.1/identifier> ?identifier .
-  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000774>} UNION
-  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000772>} UNION
-  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300235093>} UNION
-  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300135982>} UNION
-  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387176>} UNION
-  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387122>} UNION
-  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387081>} .
-  {?x <http://www.w3.org/2000/01/rdf-schema#label> "#{state}"@en} UNION {?x <http://www.w3.org/2000/01/rdf-schema#label> "#{state}"} .
-  ?x <http://vocab.getty.edu/ontology#parentString> ?parent_string .
-  FILTER regex(?parent_string, "#{country},", "i" )
-}}
-
-query = %{SELECT ?object_identifier
-WHERE
-{
-  ?x <http://purl.org/dc/elements/1.1/identifier> ?object_identifier .
-  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000774>} UNION
-  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000772>} UNION
-  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300235093>} UNION
-  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300135982>} UNION
-  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387176>} UNION
-  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387122>} UNION
-  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387081>} .
-  {?x <http://www.w3.org/2000/01/rdf-schema#label> "#{state}"@en} UNION {?x <http://www.w3.org/2000/01/rdf-schema#label> "#{state}"} .
-  ?x <http://vocab.getty.edu/ontology#broaderPreferredExtended> ?parent_country .
-  {
-    SELECT ?parent_country ?identifier_country
-    WHERE {
-       ?parent_country <http://purl.org/dc/elements/1.1/identifier> ?identifier_country .
-       ?parent_country <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300128207> .
-      { ?parent_country <http://www.w3.org/2000/01/rdf-schema#label> "#{country}"@en} UNION {?parent_country <http://www.w3.org/2000/01/rdf-schema#label> "#{country}"} .
-    }
-  }
-}}
-
-(broken due to @vi... need to make optional maybe?)
-
-
-SELECT ?object_identifier
-WHERE
-{
-  ?x <http://purl.org/dc/elements/1.1/identifier> ?object_identifier .
-  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000774>} UNION
-  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000772>} UNION
-  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300235093>} UNION
-  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300135982>} UNION
-  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387176>} UNION
-  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387122>} UNION
-  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387081>} .
-  {?x <http://www.w3.org/2000/01/rdf-schema#label> "Hà So'n Bình, Tỉnh"@en} UNION {?x <http://www.w3.org/2000/01/rdf-schema#label> "Hà So'n Bình, Tỉnh"} .
-  ?x <http://vocab.getty.edu/ontology#broaderPreferredExtended> ?parent_country .
-  {
-    SELECT ?parent_country ?identifier_country
-    WHERE {
-       ?parent_country <http://purl.org/dc/elements/1.1/identifier> ?identifier_country .
-       ?parent_country <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300128207> .
-      { ?parent_country <http://www.w3.org/2000/01/rdf-schema#label> "Viet Nam"@en} UNION {?parent_country <http://www.w3.org/2000/01/rdf-schema#label> "Viet Nam"} .
-    }
-  }
-}
-
-response = Typhoeus::Request.get("http://vocab.getty.edu/sparql.json", :params=>{:query=>query})
-
-# EXAMPLE FOR CITIES
-
-country = "Việt Nam"
-state = "Hà So'n Bình, Tỉnh"
-city = "Hà Nội"
-
-query = %{SELECT ?identifier
-WHERE
-{
-  ?x <http://purl.org/dc/elements/1.1/identifier> ?identifier .
-  <http://vocab.getty.edu/tgn/7013445> <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300008347> .
-  {?x <http://www.w3.org/2000/01/rdf-schema#label> "#{city}"@en} UNION {?x <http://www.w3.org/2000/01/rdf-schema#label> "#{city}"} .
-  ?x <http://vocab.getty.edu/ontology#parentString> ?parent_string .
-  FILTER regex(?parent_string, "#{country},", "i" )
-}}
-
-
-
-
-
-# 5.1.6 Full Text Search Query
-PREFIX luc: <http://www.ontotext.com/owlim/lucene#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX gvp: <http://vocab.getty.edu/ontology#>
-PREFIX skosxl: <http://www.w3.org/2008/05/skos-xl#>
-PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-PREFIX dct: <http://purl.org/dc/terms/>
-PREFIX gvp_lang: <http://vocab.getty.edu/language/>
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-SELECT ?Subject ?Term ?Parents ?ScopeNote ?Type {
-  ?Subject luc:term "Boston"; a ?typ.
-  ?typ rdfs:subClassOf gvp:Subject; rdfs:label ?Type.
-  optional {?Subject gvp:prefLabelGVP [skosxl:literalForm ?Term]}
-  optional {?Subject gvp:parentStringAbbrev ?Parents}
-  optional {?Subject skos:scopeNote [dct:language gvp_lang:en; rdf:value ?ScopeNote]}}
-
-
-
-
-=end
 
 
       if city_part.blank? && state_part.blank?
         # Limit to nations
-        place_type = 81010
-        top_match_term = ['']
-        second_top_match_term = ''
-        match_term = country_part.to_ascii.downcase
+        query = %{SELECT ?object_identifier
+WHERE
+{
+  ?x <http://purl.org/dc/elements/1.1/identifier> ?object_identifier .
+  ?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300128207> .
+  ?x <http://www.w3.org/2004/02/skos/core#prefLabel> ?object_label .
+  FILTER regex(?object_label, "^#{country_part}$", "i" )
+}}
       elsif state_part.present? && city_part.blank? && country_code == 7012149
         #Limit to states
-        place_type = 81175
-        top_match_term = ["#{country_part.to_ascii.downcase} (nation)"]
-        second_top_match_term = ["#{country_part.to_ascii.downcase} (nation)"]
-        match_term = state_part.to_ascii.downcase
+        query = %{SELECT ?object_identifier
+WHERE
+{
+  ?x <http://purl.org/dc/elements/1.1/identifier> ?object_identifier .
+  ?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000776> .
+  ?x <http://www.w3.org/2000/01/rdf-schema#label> ?object_label .
+  FILTER regex(?object_label, "^#{state_part}$", "i" )
+
+  ?x <http://vocab.getty.edu/ontology#broaderPreferredExtended> <http://vocab.getty.edu/tgn/7012149> .
+}}
       elsif state_part.present? && city_part.blank?
-        #Limit to regions
-        place_type = 81165
-        top_match_term = ["#{country_part.to_ascii.downcase} (nation)"]
-        second_top_match_term = ["#{country_part.to_ascii.downcase} (nation)"]
-        match_term = state_part.to_ascii.downcase
+       #Limit to regions
+
+        query = %{SELECT ?object_identifier
+WHERE
+{
+  ?x <http://purl.org/dc/elements/1.1/identifier> ?object_identifier .
+  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000774>} UNION
+  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000772>} UNION
+  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300235093>} UNION
+  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300135982>} UNION
+  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387176>} UNION
+  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387122>} UNION
+  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000776>} UNION
+  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387081>} .
+  ?x <http://www.w3.org/2000/01/rdf-schema#label> ?object_label .
+  FILTER regex(?object_label, "^#{state_part}$", "i" )
+  ?x <http://vocab.getty.edu/ontology#broaderPreferredExtended> ?parent_country .
+  {
+    SELECT ?parent_country ?identifier_country
+    WHERE {
+       ?parent_country <http://purl.org/dc/elements/1.1/identifier> ?identifier_country .
+       ?parent_country <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300128207> .
+       ?parent_country <http://www.w3.org/2000/01/rdf-schema#label> ?country_label .
+       FILTER regex(?country_label, "^#{country_part}$", "i" )
+    }
+
+  }
+}
+GROUP BY ?object_identifier
+}
+
       elsif state_part.present? && city_part.present? && neighborhood_part.blank?
         #Limited to only inhabited places at the moment...
-        place_type = 83002
-        sp = state_part.to_ascii.downcase
-        top_match_term = ["#{sp} (state)", "#{sp} (department)", "#{sp} (governorate)", "#{sp} (territory)", "#{sp} (dependent state)", "#{sp} (union territory)", "#{sp} (national district)",  "#{sp} (province)"]
-        second_top_match_term = ["#{country_part.to_ascii.downcase} (nation)"]
-        match_term = city_part.to_ascii.downcase
+        query = %{SELECT ?object_identifier
+WHERE
+{
+  ?x <http://purl.org/dc/elements/1.1/identifier> ?object_identifier .
+  ?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300008347> .
+  ?x <http://www.w3.org/2000/01/rdf-schema#label> ?object_label .
+  FILTER regex(?object_label, "^#{city_part}$", "i" )
+  ?x <http://vocab.getty.edu/ontology#broaderPreferredExtended> ?parent_country .
+  {
+    SELECT ?parent_country ?identifier_country
+    WHERE {
+       ?parent_country <http://purl.org/dc/elements/1.1/identifier> ?identifier_country .
+       ?parent_country <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300128207> .
+       ?parent_country <http://www.w3.org/2000/01/rdf-schema#label> ?country_label .
+       FILTER regex(?country_label, "^#{country_part}$", "i" )
+    }
+
+  }
+  ?x <http://vocab.getty.edu/ontology#broaderPreferredExtended> ?parent_state .
+  {
+    SELECT ?parent_state ?identifier_state
+    WHERE {
+       ?parent_state <http://purl.org/dc/elements/1.1/identifier> ?identifier_state .
+       {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000774>} UNION
+       {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000772>} UNION
+       {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300235093>} UNION
+       {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300135982>} UNION
+       {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387176>} UNION
+       {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387122>} UNION
+       {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000776>} UNION
+       {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387081>} .
+       ?parent_state <http://www.w3.org/2000/01/rdf-schema#label> ?state_label .
+       FILTER regex(?state_label, "^#{state_part}$", "i" )
+    }
+
+  }
+
+}
+GROUP BY ?object_identifier
+}
       elsif state_part.present? && city_part.present? && neighborhood_part.present?
         #Limited to only to neighborhoods currently...
-        place_type = 84251
-        top_match_term = ["#{city_part.to_ascii.downcase} (inhabited place)"]
-        sp = neighborhood_part.to_ascii.downcase
-        second_top_match_term = ["#{sp} (state)", "#{sp} (department)", "#{sp} (governorate)", "#{sp} (territory)", "#{sp} (dependent state)", "#{sp} (union territory)", "#{sp} (national district)",  "#{sp} (province)"]
-        match_term = neighborhood_part.to_ascii.downcase
+        query = %{SELECT ?object_identifier
+WHERE
+{
+  ?x <http://purl.org/dc/elements/1.1/identifier> ?object_identifier .
+  ?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000745> .
+  ?x <http://www.w3.org/2000/01/rdf-schema#label> ?object_label .
+  FILTER regex(?object_label, "^#{neighborhood_part}$", "i" )
+  ?x <http://vocab.getty.edu/ontology#broaderPreferredExtended> ?parent_country .
+  {
+    SELECT ?parent_country ?identifier_country
+    WHERE {
+       ?parent_country <http://purl.org/dc/elements/1.1/identifier> ?identifier_country .
+       ?parent_country <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300128207> .
+       ?parent_country <http://www.w3.org/2000/01/rdf-schema#label> ?country_label .
+       FILTER regex(?country_label, "^#{country_part}$", "i" )
+    }
+
+  }
+  ?x <http://vocab.getty.edu/ontology#broaderPreferredExtended> ?parent_state .
+  {
+    SELECT ?parent_state ?identifier_state
+    WHERE {
+       ?parent_state <http://purl.org/dc/elements/1.1/identifier> ?identifier_state .
+       {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000774>} UNION
+       {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000772>} UNION
+       {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300235093>} UNION
+       {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300135982>} UNION
+       {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387176>} UNION
+       {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387122>} UNION
+       {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000776>} UNION
+       {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387081>} .
+       ?parent_state <http://www.w3.org/2000/01/rdf-schema#label> ?state_label .
+       FILTER regex(?state_label, "^#{state_part}$", "i" )
+    }
+
+  }
+
+  ?x <http://vocab.getty.edu/ontology#broaderPreferredExtended> ?parent_city .
+  {
+    SELECT ?parent_city ?identifier_city
+    WHERE {
+       ?parent_city <http://purl.org/dc/elements/1.1/identifier> ?identifier_city .
+       ?parent_city <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300008347> .
+       ?parent_city <http://www.w3.org/2000/01/rdf-schema#label> ?city_label .
+       FILTER regex(?city_label, "^#{city_part}$", "i" )
+    }
+
+  }
+
+}
+GROUP BY ?object_identifier
+}
+
+
       else
         return nil
       end
@@ -429,16 +377,18 @@ SELECT ?Subject ?Term ?Parents ?ScopeNote ?Type {
         end
         retry_count = retry_count + 1
 
-        tgn_response = Typhoeus::Request.get("http://vocabsservices.getty.edu/TGNService.asmx/TGNGetTermMatch?placetypeid=#{place_type}&nationid=#{country_code}&name=" + CGI.escape(match_term), userpwd: self.getty_username + ':' + self.getty_password)
-
+       tgn_response = Typhoeus::Request.get("http://vocab.getty.edu/sparql.json", :params=>{:query=>query})
 
       end until (tgn_response.code != 500 || retry_count == max_retry)
 
+
+
+
       unless tgn_response.code == 500
-        parsed_xml = Nokogiri::Slop(tgn_response.body)
+        as_json = JSON.parse(tgn_response.body)
 
         #This is ugly and needs to be redone to achieve better recursive...
-        if parsed_xml.Vocabulary.Count.text == '0'
+        if as_json["results"]["bindings"].first["object_identifier"].blank?
           if neighborhood_part.present?
             geo_hash[:neighborhood_part] = nil
             geo_hash = tgn_id_from_geo_hash(geo_hash)
@@ -448,75 +398,13 @@ SELECT ?Subject ?Term ?Parents ?ScopeNote ?Type {
           end
 
           return nil
-        end
-
-        #If only one result, then not array. Otherwise array....
-        if parsed_xml.Vocabulary.Subject.first.blank?
-          subject = parsed_xml.Vocabulary.Subject
-
-          current_term = subject.Preferred_Term.text.gsub(/\(.*\)/, '').to_ascii.downcase.strip
-          alternative_terms = subject.elements.any? { |node| node.name == 'Term' } ? subject.Term : ''
-
-          #FIXME: Term should check for the correct level... temporary fix...
-          if current_term == match_term && top_match_term.any? { |top_match| subject.Preferred_Parent.text.to_ascii.downcase.include? top_match }
-            return_hash[:id] = subject.Subject_ID.text
-          #Check alternative term ids
-          elsif alternative_terms.present? && alternative_terms.children.any? { |alt_term| alt_term.text.to_ascii.downcase.strip == match_term} && top_match_term.any? { |top_match| subject.Preferred_Parent.text.to_ascii.downcase.include? top_match }
-            return_hash[:id] = subject.Subject_ID.text
-          elsif current_term == match_term && second_top_match_term.any? { |top_match| subject.Preferred_Parent.text.to_ascii.downcase.include? top_match }
-            return_hash[:id] = subject.Subject_ID.text
-          elsif alternative_terms.present? && alternative_terms.children.any? { |alt_term| alt_term.text.to_ascii.downcase.strip == match_term} && second_top_match_term.any? { |top_match| subject.Preferred_Parent.text.to_ascii.downcase.include? top_match }
-            return_hash[:id] = subject.Subject_ID.text
-          end
         else
-         parsed_xml.Vocabulary.Subject.each do |subject|
-
-            current_term = subject.Preferred_Term.text.gsub(/\(.*\)/, '').to_ascii.downcase.strip
-            alternative_terms = subject.elements.any? { |node| node.name == 'Term' } ? subject.Term : ''
-
-            if current_term == match_term && top_match_term.any? { |top_match| subject.Preferred_Parent.text.to_ascii.downcase.include? top_match }
-              return_hash[:id] = subject.Subject_ID.text
-            end
-          end
-
-          if return_hash[:id].blank?
-            parsed_xml.Vocabulary.Subject.each do |subject|
-              current_term = subject.Preferred_Term.text.gsub(/\(.*\)/, '').to_ascii.downcase.strip
-              alternative_terms = subject.elements.any? { |node| node.name == 'Term' } ? subject.Term : ''
-
-              if alternative_terms.present? && alternative_terms.children.any? { |alt_term| alt_term.text.to_ascii.downcase.strip == match_term} && top_match_term.any? { |top_match| subject.Preferred_Parent.text.to_ascii.downcase.include? top_match }
-                return_hash[:id] = subject.Subject_ID.text
-              end
-            end
-          end
-
-          if return_hash[:id].blank?
-            parsed_xml.Vocabulary.Subject.each do |subject|
-              current_term = subject.Preferred_Term.text.gsub(/\(.*\)/, '').to_ascii.downcase.strip
-              alternative_terms = subject.elements.any? { |node| node.name == 'Term' } ? subject.Term : ''
-
-              if current_term == match_term && second_top_match_term.any? { |top_match| subject.Preferred_Parent.text.to_ascii.downcase.include? top_match }
-                return_hash[:id] = subject.Subject_ID.text
-              end
-            end
-          end
-
-          if return_hash[:id].blank?
-            parsed_xml.Vocabulary.Subject.each do |subject|
-              current_term = subject.Preferred_Term.text.gsub(/\(.*\)/, '').to_ascii.downcase.strip
-              alternative_terms = subject.elements.any? { |node| node.name == 'Term' } ? subject.Term : ''
-
-              if alternative_terms.present? && alternative_terms.children.any? { |alt_term| alt_term.text.to_ascii.downcase.strip == match_term} && second_top_match_term.any? { |top_match| subject.Preferred_Parent.text.to_ascii.downcase.include? top_match }
-                return_hash[:id] = subject.Subject_ID.text
-              end
-            end
-          end
+          return_hash[:id] = as_json["results"]["bindings"].first["object_identifier"]["value"]
         end
-
       end
 
       if tgn_response.code == 500
-        raise 'TGN Server appears to not be responding for Geographic query: ' + term
+        raise 'TGN Server appears to not be responding for Geographic query: ' + query
       end
 
       if return_hash.present?
