@@ -58,6 +58,33 @@ module Bplgeo
 
       national district:
                    http://vocab.getty.edu/aat/300387081
+
+
+Roxbury:
+http://vocab.getty.edu/tgn/7015002.json
+
+
+
+#South Carolina - http://vocab.getty.edu/tgn/7007712
+
+SELECT ?object_identifier
+WHERE
+{
+  ?x <http://purl.org/dc/elements/1.1/identifier> 7007712 .
+  ?x <http://vocab.getty.edu/ontology#broaderPreferredExtended> ?parent_country .
+  {
+    SELECT ?parent_country ?identifier_country ?aat_place_id
+    WHERE {
+       ?parent_country <http://purl.org/dc/elements/1.1/identifier> ?identifier_country .
+       ?parent_country <http://vocab.getty.edu/ontology#placeTypePreferred> ?aat_place_id .
+       ?parent_country <http://www.w3.org/2000/01/rdf-schema#label> ?country_label .
+    }
+    GROUP BY ?parent_country
+  }
+}
+GROUP BY ?object_identifier
+
+
 =end
 
 
