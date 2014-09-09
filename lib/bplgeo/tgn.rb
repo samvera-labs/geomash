@@ -84,6 +84,24 @@ WHERE
 }
 GROUP BY ?object_identifier
 
+primary_tgn_response = Typhoeus::Request.get("http://vocab.getty.edu/tgn/#{tgn_id}.json")
+
+place_type_base = ''
+broader_place_type_list = []
+
+primary_tgn_response = Typhoeus::Request.get("http://vocab.getty.edu/download/json", :params=>{:uri=>"http://vocab.getty.edu/tgn/#{tgn_id}.json"})
+as_json_tgn_response = JSON.parse(primary_tgn_response.body)
+as_json_tgn_response['results']['bindings'].each do |ntriple|
+  if ntriple['Predicate']['value'] == 'http://vocab.getty.edu/ontology#placeTypePreferred'
+    place_type_base = ntriple['Object']['value']
+  end
+
+  if ntriple['Predicate']['value'] == 'http://vocab.getty.edu/ontology#broaderPreferredExtended'
+    broader_place_type_list << ntriple['Object']['value']
+  end
+
+end
+
 
 =end
 
