@@ -86,29 +86,176 @@ GROUP BY ?object_identifier
 
 primary_tgn_response = Typhoeus::Request.get("http://vocab.getty.edu/tgn/#{tgn_id}.json")
 
-place_type_base = ''
-broader_place_type_list = []
+
+  when 'http://vocab.getty.edu/ontology#placeTypePreferred'
+    place_type_base[:aat_id] = ntriple['Object']['value']
+  when 'http://www.w3.org/2004/02/skos/core#prefLabel'
+    if ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'en'
+      place_type_base[:label_en] = ntriple['Object']['value']
+    else if ntriple['Object']['xml:lang'].blank?
+     place_type_base[:label_default] = ntriple['Object']['value']
+
+
+tgn_main_term_info = {}
+broader_place_type_list = ["http://vocab.getty.edu/tgn/"#{tgn_id}]
 
 primary_tgn_response = Typhoeus::Request.get("http://vocab.getty.edu/download/json", :params=>{:uri=>"http://vocab.getty.edu/tgn/#{tgn_id}.json"})
 as_json_tgn_response = JSON.parse(primary_tgn_response.body)
-as_json_tgn_response['results']['bindings'].each do |ntriple|
-  if ntriple['Predicate']['value'] == 'http://vocab.getty.edu/ontology#placeTypePreferred'
-    place_type_base = ntriple['Object']['value']
-  end
 
-  if ntriple['Predicate']['value'] == 'http://vocab.getty.edu/ontology#broaderPreferredExtended'
+as_json_tgn_response['results']['bindings'].each do |ntriple|
+  case ntriple['Predicate']['value']
+  when 'http://www.w3.org/2004/02/skos/core#prefLabel'
+    if ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'en'
+      tgn_main_term_info[:label_en] = ntriple['Object']['value']
+    elsif ntriple['Object']['xml:lang'].blank?
+     tgn_main_term_info[:label_default] = ntriple['Object']['value']
+    end
+  when 'http://vocab.getty.edu/ontology#broaderPreferredExtended'
     broader_place_type_list << ntriple['Object']['value']
   end
 
 end
 
+query = "SELECT ?identifier_place ?place_label_default ?place_label_en ?aat_pref WHERE {"
+
+broader_place_type_list.each do |place_uri|
+query += %{{<#{place_uri}> <http://purl.org/dc/elements/1.1/identifier> ?identifier_place .
+        OPTIONAL {<#{place_uri}> <http://www.w3.org/2004/02/skos/core#prefLabel> ?place_label_en
+                 FILTER langMatches( lang(?place_label_en), "en" )
+                 }
+        OPTIONAL {<#{place_uri}> <http://www.w3.org/2004/02/skos/core#prefLabel> ?place_label_default
+                 FILTER langMatches( lang(?place_label_default), "" )
+                 }
+        <#{place_uri}> <http://vocab.getty.edu/ontology#placeTypePreferred> ?aat_pref
+       } UNION
+     }
+end
+
+query = query[0..-12]
+query += ". } GROUP BY ?identifier_place ?place_label_default ?place_label_en ?aat_pref"
+
+tgn_response_for_aat = Typhoeus::Request.get("http://vocab.getty.edu/sparql.json", :params=>{:query=>query})
+as_json_tgn_response_for_aat = JSON.parse(tgn_response_for_aat.body)
+
+as_json_tgn_response_for_aat["results"]["bindings"].each do |aat_response|
+  #aat_response['identifier_place']['value']
+  #aat_response['place_label_default']['value']
+  #....
+end
+
+
+
+
+
+EXAMPLE SPARQL:
+
+    SELECT ?identifier_place ?place_label_default ?place_label_en ?aat_pref
+    WHERE {
+       {<http://vocab.getty.edu/tgn/1000001> <http://purl.org/dc/elements/1.1/identifier> ?identifier_place .
+        OPTIONAL {<http://vocab.getty.edu/tgn/1000001> <http://www.w3.org/2004/02/skos/core#prefLabel> ?place_label_en
+                 FILTER langMatches( lang(?place_label_en), "en" )
+                 }
+        OPTIONAL {<http://vocab.getty.edu/tgn/1000001> <http://www.w3.org/2004/02/skos/core#prefLabel> ?place_label_default
+                 FILTER langMatches( lang(?place_label_default), "" )
+                 }
+        <http://vocab.getty.edu/tgn/1000001> <http://vocab.getty.edu/ontology#placeTypePreferred> ?aat_pref
+       } UNION
+       {<http://vocab.getty.edu/tgn/7012149> <http://purl.org/dc/elements/1.1/identifier> ?identifier_place .
+        OPTIONAL {<http://vocab.getty.edu/tgn/7012149> <http://www.w3.org/2004/02/skos/core#prefLabel> ?place_label_en
+                 FILTER langMatches( lang(?place_label_en), "en" )
+                 }
+        OPTIONAL {<http://vocab.getty.edu/tgn/7012149> <http://www.w3.org/2004/02/skos/core#prefLabel> ?place_label_default
+                 FILTER langMatches( lang(?place_label_default), "" )
+                 }
+       <http://vocab.getty.edu/tgn/7012149> <http://vocab.getty.edu/ontology#placeTypePreferred> ?aat_pref
+       } UNION
+       {<http://vocab.getty.edu/tgn/7029392> <http://purl.org/dc/elements/1.1/identifier> ?identifier_place .
+        OPTIONAL {<http://vocab.getty.edu/tgn/7029392> <http://www.w3.org/2004/02/skos/core#prefLabel> ?place_label_en
+                 FILTER langMatches( lang(?place_label_en), "en" )
+                 }
+        OPTIONAL {<http://vocab.getty.edu/tgn/7029392> <http://www.w3.org/2004/02/skos/core#prefLabel> ?place_label_default
+                 FILTER langMatches( lang(?place_label_default), "" )
+                 }
+       <http://vocab.getty.edu/tgn/7012149> <http://vocab.getty.edu/ontology#placeTypePreferred> ?aat_pref
+       } .
+
+
+    }
+   GROUP BY ?identifier_place ?place_label_default ?place_label_en ?aat_pref
+
+
+
 
 =end
 
+    def self.get_tgn_data(tgn_id)
+      tgn_main_term_info = {}
+      broader_place_type_list = ["http://vocab.getty.edu/tgn/#{tgn_id}"]
 
+      primary_tgn_response = Typhoeus::Request.get("http://vocab.getty.edu/download/json", :params=>{:uri=>"http://vocab.getty.edu/tgn/#{tgn_id}.json"})
+      as_json_tgn_response = JSON.parse(primary_tgn_response.body)
+
+      as_json_tgn_response['results']['bindings'].each do |ntriple|
+        case ntriple['Predicate']['value']
+          when 'http://www.w3.org/2004/02/skos/core#prefLabel'
+            if ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'en'
+              tgn_main_term_info[:label_en] = ntriple['Object']['value']
+            elsif ntriple['Object']['xml:lang'].blank?
+              tgn_main_term_info[:label_default] = ntriple['Object']['value']
+            end
+          when 'http://schema.org/latitude'
+            tgn_main_term_info[:latitude] = ntriple['Object']['value']
+          when 'http://schema.org/longitude'
+            tgn_main_term_info[:longitude] = ntriple['Object']['value']
+          when 'http://vocab.getty.edu/ontology#broaderPreferredExtended'
+            broader_place_type_list << ntriple['Object']['value']
+        end
+
+      end
+
+      # coordinates
+      coords = nil
+      if tgn_main_term_info[:latitude].present?
+        coords = {}
+        coords[:latitude] = tgn_main_term_info[:latitude]
+        coords[:longitude] = tgn_main_term_info[:longitude]
+        coords[:combined] = tgn_main_term_info[:latitude] + ',' + tgn_main_term_info[:longitude]
+      end
+
+      tgn_term = tgn_main_term_info[:label_en].present? ? tgn_main_term_info[:label_en] : tgn_main_term_info[:label_default]
+
+
+
+      query = "SELECT ?identifier_place ?place_label_default ?place_label_en ?aat_pref WHERE {"
+
+      broader_place_type_list.each do |place_uri|
+        query += %{{<#{place_uri}> <http://purl.org/dc/elements/1.1/identifier> ?identifier_place .
+        OPTIONAL {<#{place_uri}> <http://www.w3.org/2004/02/skos/core#prefLabel> ?place_label_en
+                 FILTER langMatches( lang(?place_label_en), "en" )
+                 }
+        OPTIONAL {<#{place_uri}> <http://www.w3.org/2004/02/skos/core#prefLabel> ?place_label_default
+                 FILTER langMatches( lang(?place_label_default), "" )
+                 }
+        <#{place_uri}> <http://vocab.getty.edu/ontology#placeTypePreferred> ?aat_pref
+       } UNION
+     }
+      end
+
+      query = query[0..-12]
+      query += ". } GROUP BY ?identifier_place ?place_label_default ?place_label_en ?aat_pref"
+
+      tgn_response_for_aat = Typhoeus::Request.get("http://vocab.getty.edu/sparql.json", :params=>{:query=>query})
+      as_json_tgn_response_for_aat = JSON.parse(tgn_response_for_aat.body)
+
+      as_json_tgn_response_for_aat["results"]["bindings"].each do |aat_response|
+        #aat_response['identifier_place']['value']
+        #aat_response['place_label_default']['value']
+        #....
+      end
+    end
 
     # retrieve data from Getty TGN to populate <mods:subject auth="tgn">
-    def self.get_tgn_data(tgn_id)
+    def self.get_tgn_data_original(tgn_id)
       tgn_response = Typhoeus::Request.get('http://vocabsservices.getty.edu/TGNService.asmx/TGNGetSubject?subjectID=' + tgn_id, userpwd: self.getty_username + ':' + self.getty_password)
       unless tgn_response.code == 500
         tgnrec = Nokogiri::XML(tgn_response.body)
