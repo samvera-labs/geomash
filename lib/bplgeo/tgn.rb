@@ -188,7 +188,7 @@ EXAMPLE SPARQL:
 
     def self.get_tgn_data(tgn_id)
       return nil if Bplgeo::TGN.tgn_enabled != 'true'
-                       
+
       tgn_main_term_info = {}
       #broader_place_type_list = ["http://vocab.getty.edu/tgn/#{tgn_id}"]
       broader_place_type_list = []
@@ -301,7 +301,7 @@ EXAMPLE SPARQL:
           case tgn_term_type
             when '300128176' #continent
               hier_geo[:continent] = tgn_term
-            when '300128207' #nations
+            when '300128207' #nation
               hier_geo[:country] = tgn_term
             when '300000774' #province
               hier_geo[:province] = tgn_term

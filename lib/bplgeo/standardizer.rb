@@ -12,6 +12,7 @@ module Bplgeo
 
       state_abbr_list = ['Mass']
       state_name_list = []
+      country_name_list = []
 
       #Countries gem of https://github.com/hexorx/countries
       Country.new('US').states.each do |state_abbr, state_names|
@@ -19,10 +20,14 @@ module Bplgeo
         state_name_list << state_names["name"]
       end
 
+      Country.all.each do |country_name_abbr_pair|
+        country_name_list << country_name_abbr_pair.first
+      end
+
       #Parsing a subject geographic term.
       if term.include?('--')
         term.split('--').each_with_index do |split_term, index|
-          if state_name_list.any? { |state| split_term.include? state }
+          if state_name_list.any? { |state| split_term.include? state } || country_name_list.any? { |country| split_term.include? country }
             geo_term = term.split('--')[index..term.split('--').length-1].reverse!.join(',')
           elsif state_abbr_list.any? { |abbr| split_term.include? abbr }
             geo_term = split_term
@@ -32,13 +37,13 @@ module Bplgeo
         #Experimental... example: Palmer (Mass) - history or Stores (retail trade) - Palmer, Mass
       elsif term.include?(' - ')
         term.split(' - ').each do |split_term|
-          if state_name_list.any? { |state| split_term.include? state } || state_abbr_list.any? { |abbr| split_term.include? abbr }
+          if state_name_list.any? { |state| split_term.include? state } || state_abbr_list.any? { |abbr| split_term.include? abbr } || country_name_list.any? { |country| split_term.include? country }
             geo_term = split_term
           end
 
         end
       else
-        if state_name_list.any? { |state| term.include? state } || state_abbr_list.any? { |abbr| term.include? abbr }
+        if state_name_list.any? { |state| term.include? state } || state_abbr_list.any? { |abbr| term.include? abbr } || country_name_list.any? { |country| term.include? country }
           geo_term = term
         end
       end
