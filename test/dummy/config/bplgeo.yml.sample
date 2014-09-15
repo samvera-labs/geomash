@@ -1,22 +1,19 @@
 development:
-  getty_username: <username>
-  getty_password: <password>
+  tgn_enabled: true
   geonames_username: <username>
   #NOTE: Mapquest is super unreliable on its matches...
   mapquest_key: <mapquest_key>
   bing_key: <bing_key>
   timeout: 7
 test: &TEST_
-  getty_username: <username>
-  getty_password: <password>
+  tgn_enabled: true
   geonames_username: <username>
   #NOTE: Mapquest is super unreliable on its matches...
   mapquest_key: <mapquest_key>
   bing_key: <bing_key>
   timeout: 7
 production:
-  getty_username: <username>
-  getty_password: <password>
+  tgn_enabled: true
   geonames_username: <username>
   #NOTE: Mapquest is super unreliable on its matches...
   mapquest_key: <mapquest_key>

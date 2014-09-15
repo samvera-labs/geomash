@@ -199,7 +199,7 @@ module Bplgeo
       if google_api_result.present?
         #Types: street number, route, neighborhood, establishment, transit_station, bus_station
         google_api_result.first.data["address_components"].each do |result|
-          if (result['types'] & ['street number', 'route', 'neighborhood', 'establishment', 'transit_station', 'bus_station']).present?
+          if (result['types'] & ['street number', 'route', 'establishment', 'transit_station', 'bus_station']).present? || (result['types'].include?('neighborhood') && !result['types'].include?('political'))
             #return_hash[:term_differs_from_tgn] = true
             #TODO: Not implemented for Google results right now.
             return_hash[:street_part] = 'TODO: Not Implemented for Google Results'
@@ -212,8 +212,8 @@ module Bplgeo
             return_hash[:state_part] = result['long_name'].to_ascii
           elsif (result['types'] & ['locality']).present?
             return_hash[:city_part] = result['long_name']
-          elsif (result['types'] & ['sublocality', 'political']).length == 2
-            return_hash[:neighborhood_part] = result['long_name']
+          elsif (result['types'] & ['sublocality', 'political']).length == 2 || result['types'].include?('neighborhood')
+              return_hash[:neighborhood_part] = result['long_name']
           end
         end
 

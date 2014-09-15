@@ -26,7 +26,24 @@ module Bplgeo
     end
 
     if return_hash.present?
+      #FIXME
       return_hash[:tgn] = Bplgeo::TGN.tgn_id_from_geo_hash(return_hash)
+      if return_hash[:tgn].blank?
+        if return_hash[:neighborhood_part].present?
+          geo_hash_temp = return_hash.clone
+          geo_hash_temp[:neighborhood_part] = nil
+          geo_hash_temp[:original_string_differs] = true
+          return_hash[:tgn] = Bplgeo::TGN.tgn_id_from_geo_hash(geo_hash_temp)
+          return_hash[:tgn][:original_string_differs] = true if return_hash[:tgn].present?
+        elsif return_hash[:city_part].present?
+          geo_hash_temp = return_hash.clone
+          geo_hash_temp[:city_part] = nil
+          geo_hash_temp[:original_string_differs] = true
+          return_hash[:tgn] = Bplgeo::TGN.tgn_id_from_geo_hash(geo_hash_temp)
+          return_hash[:tgn][:original_string_differs] = true if return_hash[:tgn].present?
+        end
+      end
+
       return_hash[:geonames] = Bplgeo::Geonames.geonames_id_from_geo_hash(return_hash)
     end
 

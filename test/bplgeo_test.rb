@@ -8,8 +8,8 @@ class BplgeoTest < ActiveSupport::TestCase
     assert_equal 'Massachusetts', result[:state_part]
     assert_equal 'United States', result[:country_part]
     assert_equal nil, result[:street_part]
-    assert_equal '7013445', result[:tgn][:id] if Bplgeo::TGN.getty_username != '<username>'                 
-    assert_equal false, result[:tgn][:original_string_differs] if Bplgeo::TGN.getty_username != '<username>'
+    assert_equal '7013445', result[:tgn][:id] if Bplgeo::TGN.tgn_enabled == 'true'
+    assert_equal false, result[:tgn][:original_string_differs] if Bplgeo::TGN.tgn_enabled == 'true'
     assert_equal '4930956', result[:geonames][:id] if Bplgeo::Geonames.geonames_username != '<username>'
     assert_equal false, result[:geonames][:original_string_differs] if Bplgeo::Geonames.geonames_username != '<username>'
 
@@ -18,8 +18,8 @@ class BplgeoTest < ActiveSupport::TestCase
     assert_equal 'New York', result[:state_part]
     assert_equal 'United States', result[:country_part]
     assert_equal nil, result[:street_part]
-    assert_equal '7007567', result[:tgn][:id] if Bplgeo::TGN.getty_username != '<username>'
-    assert_equal false, result[:tgn][:original_string_differs] if Bplgeo::TGN.getty_username != '<username>'
+    assert_equal '7007567', result[:tgn][:id] if Bplgeo::TGN.tgn_enabled == 'true'
+    assert_equal false, result[:tgn][:original_string_differs] if Bplgeo::TGN.tgn_enabled == 'true'
     assert_equal '5128638', result[:geonames][:id] if Bplgeo::Geonames.geonames_username != '<username>'
     assert_equal false, result[:geonames][:original_string_differs] if Bplgeo::Geonames.geonames_username != '<username>'
 
@@ -28,8 +28,8 @@ class BplgeoTest < ActiveSupport::TestCase
     assert_equal 'District of Columbia', result[:state_part]
     assert_equal 'United States', result[:country_part]
     assert_equal nil, result[:street_part]
-    assert_equal '7013962', result[:tgn][:id] if Bplgeo::TGN.getty_username != '<username>'
-    assert_equal false, result[:tgn][:original_string_differs] if Bplgeo::TGN.getty_username != '<username>'
+    assert_equal '7013962', result[:tgn][:id] if Bplgeo::TGN.tgn_enabled == 'true'
+    assert_equal false, result[:tgn][:original_string_differs] if Bplgeo::TGN.tgn_enabled == 'true'
     assert_equal '4140963', result[:geonames][:id] if Bplgeo::Geonames.geonames_username != '<username>'
     assert_equal false, result[:geonames][:original_string_differs] if Bplgeo::Geonames.geonames_username != '<username>'
 
@@ -39,8 +39,8 @@ class BplgeoTest < ActiveSupport::TestCase
     assert_equal 'United States', result[:country_part]
     assert_equal 'Roxbury', result[:neighborhood_part]
     assert_equal nil, result[:street_part]
-    assert_equal '7015002', result[:tgn][:id] if Bplgeo::TGN.getty_username != '<username>'
-    assert_equal false, result[:tgn][:original_string_differs] if Bplgeo::TGN.getty_username != '<username>'
+    assert_equal '7015002', result[:tgn][:id] if Bplgeo::TGN.tgn_enabled == 'true'
+    assert_equal false, result[:tgn][:original_string_differs] if Bplgeo::TGN.tgn_enabled == 'true'
     #FIXME?
     assert_equal '4949151', result[:geonames][:id] if Bplgeo::Geonames.geonames_username != '<username>'
     assert_equal false, result[:geonames][:original_string_differs] if Bplgeo::Geonames.geonames_username != '<username>'
@@ -51,8 +51,8 @@ class BplgeoTest < ActiveSupport::TestCase
     assert_equal 'United States', result[:country_part]
     assert_equal 'Roxbury', result[:neighborhood_part]
     assert_equal nil, result[:street_part]
-    assert_equal '7015002', result[:tgn][:id] if Bplgeo::TGN.getty_username != '<username>'
-    assert_equal false, result[:tgn][:original_string_differs] if Bplgeo::TGN.getty_username != '<username>'
+    assert_equal '7015002', result[:tgn][:id] if Bplgeo::TGN.tgn_enabled == 'true'
+    assert_equal false, result[:tgn][:original_string_differs] if Bplgeo::TGN.tgn_enabled == 'true'
     #FIXME?
     assert_equal '4949151', result[:geonames][:id] if Bplgeo::Geonames.geonames_username != '<username>'
     assert_equal false, result[:geonames][:original_string_differs] if Bplgeo::Geonames.geonames_username != '<username>'
@@ -62,9 +62,9 @@ class BplgeoTest < ActiveSupport::TestCase
     assert_equal nil, result[:state_part]
     assert_equal 'Vietnam', result[:country_part]
     assert_equal nil, result[:neighborhood_part]
-    assert_equal '1000145', result[:tgn][:id] if Bplgeo::TGN.getty_username != '<username>'
+    assert_equal '1000145', result[:tgn][:id] if Bplgeo::TGN.tgn_enabled == 'true'
     assert_equal nil, result[:street_part]
-    assert_equal false, result[:tgn][:original_string_differs] if Bplgeo::TGN.getty_username != '<username>'
+    assert_equal false, result[:tgn][:original_string_differs] if Bplgeo::TGN.tgn_enabled == 'true'
 
     result = Bplgeo.parse('Soviet Union')
     assert_equal nil, result[:city_part]
@@ -74,15 +74,14 @@ class BplgeoTest < ActiveSupport::TestCase
     assert_equal nil, result[:tgn]
     assert_equal nil, result[:street_part]
 
-    #FIXME: Should eventually still return Fenway even if not a TGN neighborhood... rewrite pending.
     result = Bplgeo.parse('Fenway (Boston, Mass.)')
     assert_equal 'Boston', result[:city_part]
     assert_equal 'Massachusetts', result[:state_part]
     assert_equal 'United States', result[:country_part]
-    assert_equal nil, result[:neighborhood_part]
-    assert_equal '7013445', result[:tgn][:id] if Bplgeo::TGN.getty_username != '<username>'
-    assert_equal 'TODO: Not Implemented for Google Results', result[:street_part]
-    assert_equal true, result[:tgn][:original_string_differs] if Bplgeo::TGN.getty_username != '<username>'
+    assert_equal 'Fenway/Kenmore', result[:neighborhood_part]
+    assert_equal '7013445', result[:tgn][:id] if Bplgeo::TGN.tgn_enabled == 'true'
+    assert_equal nil, result[:street_part]
+    assert_equal true, result[:tgn][:original_string_differs] if Bplgeo::TGN.tgn_enabled == 'true'
 
     #Should find the Michigan Atlanta over the Georgia Atlanta
     #State part from an API giving me Atlanta????
@@ -91,8 +90,8 @@ class BplgeoTest < ActiveSupport::TestCase
     assert_equal 'Michigan', result[:state_part]
     assert_equal 'United States', result[:country_part]
     assert_equal nil, result[:neighborhood_part]
-    assert_equal '2051159', result[:tgn][:id] if Bplgeo::TGN.getty_username != '<username>'
-    assert_equal false, result[:tgn][:original_string_differs] if Bplgeo::TGN.getty_username != '<username>'
+    assert_equal '2051159', result[:tgn][:id] if Bplgeo::TGN.tgn_enabled == 'true'
+    assert_equal false, result[:tgn][:original_string_differs] if Bplgeo::TGN.tgn_enabled == 'true'
     assert_equal '4984500', result[:geonames][:id] if Bplgeo::Geonames.geonames_username != '<username>'
     assert_equal false, result[:geonames][:original_string_differs] if Bplgeo::Geonames.geonames_username != '<username>'
 

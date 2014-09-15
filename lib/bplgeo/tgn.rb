@@ -7,12 +7,8 @@ module Bplgeo
       @bplgeo_config ||= YAML::load(ERB.new(IO.read(File.join(root, 'config', 'bplgeo.yml'))).result)[env].with_indifferent_access
     end
 
-    def self.getty_username
-      bplgeo_config[:getty_username] || '<username>'
-    end
-
-    def self.getty_password
-      bplgeo_config[:getty_password] || '<password>'
+    def self.tgn_enabled
+      bplgeo_config[:tgn_enabled] || 'true'
     end
 
 =begin
@@ -110,6 +106,8 @@ as_json_tgn_response['results']['bindings'].each do |ntriple|
     elsif ntriple['Object']['xml:lang'].blank?
      tgn_main_term_info[:label_default] = ntriple['Object']['value']
     end
+  when 'http://vocab.getty.edu/ontology#placeTypePreferred'
+   tgn_main_term_info[:aat_place] = ntriple['Object']['value']
   when 'http://vocab.getty.edu/ontology#broaderPreferredExtended'
     broader_place_type_list << ntriple['Object']['value']
   end
@@ -189,10 +187,16 @@ EXAMPLE SPARQL:
 =end
 
     def self.get_tgn_data(tgn_id)
+      return nil if Bplgeo::TGN.tgn_enabled != 'true'
+                       
       tgn_main_term_info = {}
-      broader_place_type_list = ["http://vocab.getty.edu/tgn/#{tgn_id}"]
+      #broader_place_type_list = ["http://vocab.getty.edu/tgn/#{tgn_id}"]
+      broader_place_type_list = []
 
       primary_tgn_response = Typhoeus::Request.get("http://vocab.getty.edu/download/json", :params=>{:uri=>"http://vocab.getty.edu/tgn/#{tgn_id}.json"})
+
+      return nil if(primary_tgn_response.response_code == 404) #Couldn't find TGN... FIXME: additional check needed if TGN is down?
+
       as_json_tgn_response = JSON.parse(primary_tgn_response.body)
 
       as_json_tgn_response['results']['bindings'].each do |ntriple|
@@ -203,6 +207,8 @@ EXAMPLE SPARQL:
             elsif ntriple['Object']['xml:lang'].blank?
               tgn_main_term_info[:label_default] = ntriple['Object']['value']
             end
+          when 'http://vocab.getty.edu/ontology#placeTypePreferred'
+            tgn_main_term_info[:aat_place] = ntriple['Object']['value']
           when 'http://schema.org/latitude'
             tgn_main_term_info[:latitude] = ntriple['Object']['value']
           when 'http://schema.org/longitude'
@@ -222,14 +228,51 @@ EXAMPLE SPARQL:
         coords[:combined] = tgn_main_term_info[:latitude] + ',' + tgn_main_term_info[:longitude]
       end
 
+      hier_geo = {}
       tgn_term = tgn_main_term_info[:label_en].present? ? tgn_main_term_info[:label_en] : tgn_main_term_info[:label_default]
+      tgn_term_type = tgn_main_term_info[:aat_place].split('/').last
 
+      #Initial Term
+      if tgn_term.present? && tgn_term_type.present?
+        case tgn_term_type
+          when '300128176' #continent
+            hier_geo[:continent] = tgn_term
+          when '300128207' #nations
+            hier_geo[:country] = tgn_term
+          when '300000774' #province
+            hier_geo[:province] = tgn_term
+          when '300236112', '300182722', '300387194', '300387052' #region, union, semi-independent political entity
+            hier_geo[:region] = tgn_term
+          when '300000776', '300000772', '300235093' #state, department, governorate
+            hier_geo[:state] = tgn_term
+          when '300387081' #national district
+            if tgn_term == 'District of Columbia'
+              hier_geo[:state] = tgn_term
+            else
+              hier_geo[:territory] = tgn_term
+            end
+          when '300135982', '300387176', '300387122' #territory, dependent state, union territory
+            hier_geo[:territory] = tgn_term
+          when '300000771' #county
+            hier_geo[:county] = tgn_term
+          when '300008347' #inhabited place
+            hier_geo[:city] = tgn_term
+          when '300000745' #neighborhood
+            hier_geo[:city_section] = tgn_term
+          when '300008791', '300387062' #island
+            hier_geo[:island] = tgn_term
+          when '300387575', '300387346', '300167671', '300387178', '300387082' #'81101/area', '22101/general region', '83210/deserted settlement', '81501/historical region', '81126/national division'
+            hier_geo[:area] = tgn_term
+          else
+            non_hier_geo = tgn_term
+        end
 
+        #Broader places
 
-      query = "SELECT ?identifier_place ?place_label_default ?place_label_en ?aat_pref WHERE {"
+        query = "SELECT ?identifier_place ?place_label_default ?place_label_en ?aat_pref WHERE {"
 
-      broader_place_type_list.each do |place_uri|
-        query += %{{<#{place_uri}> <http://purl.org/dc/elements/1.1/identifier> ?identifier_place .
+        broader_place_type_list.each do |place_uri|
+          query += %{{<#{place_uri}> <http://purl.org/dc/elements/1.1/identifier> ?identifier_place .
         OPTIONAL {<#{place_uri}> <http://www.w3.org/2004/02/skos/core#prefLabel> ?place_label_en
                  FILTER langMatches( lang(?place_label_en), "en" )
                  }
@@ -239,129 +282,51 @@ EXAMPLE SPARQL:
         <#{place_uri}> <http://vocab.getty.edu/ontology#placeTypePreferred> ?aat_pref
        } UNION
      }
-      end
-
-      query = query[0..-12]
-      query += ". } GROUP BY ?identifier_place ?place_label_default ?place_label_en ?aat_pref"
-
-      tgn_response_for_aat = Typhoeus::Request.get("http://vocab.getty.edu/sparql.json", :params=>{:query=>query})
-      as_json_tgn_response_for_aat = JSON.parse(tgn_response_for_aat.body)
-
-      as_json_tgn_response_for_aat["results"]["bindings"].each do |aat_response|
-        #aat_response['identifier_place']['value']
-        #aat_response['place_label_default']['value']
-        #....
-      end
-    end
-
-    # retrieve data from Getty TGN to populate <mods:subject auth="tgn">
-    def self.get_tgn_data_original(tgn_id)
-      tgn_response = Typhoeus::Request.get('http://vocabsservices.getty.edu/TGNService.asmx/TGNGetSubject?subjectID=' + tgn_id, userpwd: self.getty_username + ':' + self.getty_password)
-      unless tgn_response.code == 500
-        tgnrec = Nokogiri::XML(tgn_response.body)
-        #puts tgnrec.to_s
-
-        # coordinates
-        if tgnrec.at_xpath("//Coordinates")
-          coords = {}
-          coords[:latitude] = tgnrec.at_xpath("//Latitude/Decimal").children.to_s
-          coords[:longitude] = tgnrec.at_xpath("//Longitude/Decimal").children.to_s
-          coords[:combined] = coords[:latitude] + ',' + coords[:longitude]
-        else
-          coords = nil
         end
 
-        hier_geo = {}
+        query = query[0..-12]
+        query += ". } GROUP BY ?identifier_place ?place_label_default ?place_label_en ?aat_pref"
 
-        #main term
-        if tgnrec.at_xpath("//Terms/Preferred_Term/Term_Text")
-          tgn_term_type = tgnrec.at_xpath("//Preferred_Place_Type/Place_Type_ID").children.to_s
-          pref_term_langs = tgnrec.xpath("//Terms/Preferred_Term/Term_Languages/Term_Language/Language")
-          # if the preferred term is the preferred English form, use that
-          if pref_term_langs.children.to_s.include? "English"
-            tgn_term = tgnrec.at_xpath("//Terms/Preferred_Term/Term_Text").children.to_s
-          else # use the non-preferred term which is the preferred English form
-            if tgnrec.xpath("//Terms/Non-Preferred_Term")
-              non_pref_terms = tgnrec.xpath("//Terms/Non-Preferred_Term")
-              non_pref_terms.each do |non_pref_term|
-                non_pref_term_langs = non_pref_term.children.css("Term_Language")
-                # have to loop through these, as sometimes languages share form
-                non_pref_term_langs.each do |non_pref_term_lang|
-                  if non_pref_term_lang.children.css("Preferred").children.to_s == "Preferred" && non_pref_term_lang.children.css("Language").children.to_s == "English"
-                    tgn_term = non_pref_term.children.css("Term_Text").children.to_s
-                  end
-                end
-              end
-            end
+        tgn_response_for_aat = Typhoeus::Request.get("http://vocab.getty.edu/sparql.json", :params=>{:query=>query})
+        as_json_tgn_response_for_aat = JSON.parse(tgn_response_for_aat.body)
+
+        as_json_tgn_response_for_aat["results"]["bindings"].each do |aat_response|
+          tgn_term_type = aat_response['aat_pref']['value'].split('/').last
+          if aat_response['place_label_en'].present? && aat_response['place_label_en']['value'] != '-'
+            tgn_term = aat_response['place_label_en']['value']
+          else
+            tgn_term = aat_response['place_label_default']['value']
           end
-          # if no term is the preferred English form, just use the preferred term
-          tgn_term ||= tgnrec.at_xpath("//Terms/Preferred_Term/Term_Text").children.to_s
-        end
-        if tgn_term && tgn_term_type
+
           case tgn_term_type
-            when '29000/continent'
+            when '300128176' #continent
               hier_geo[:continent] = tgn_term
-            when '81010/nation'
+            when '300128207' #nations
               hier_geo[:country] = tgn_term
-            when '81161/province'
+            when '300000774' #province
               hier_geo[:province] = tgn_term
-            when '81165/region', '82193/union', '80005/semi-independent political entity'
+            when '300236112', '300182722', '300387194', '300387052' #region, union, semi-independent political entity
               hier_geo[:region] = tgn_term
-            when '81175/state', '81117/department', '82133/governorate'
+            when '300000776', '300000772', '300235093' #state, department, governorate
               hier_geo[:state] = tgn_term
-            when '81125/national district'
+            when '300387081' #national district
               if tgn_term == 'District of Columbia'
                 hier_geo[:state] = tgn_term
               else
                 hier_geo[:territory] = tgn_term
               end
-            when '81181/territory', '81021/dependent state', '81186/union territory'
+            when '300135982', '300387176', '300387122' #territory, dependent state, union territory
               hier_geo[:territory] = tgn_term
-            when '81115/county'
+            when '300000771' #county
               hier_geo[:county] = tgn_term
-            when '83002/inhabited place'
+            when '300008347' #inhabited place
               hier_geo[:city] = tgn_term
-            when '84251/neighborhood'
+            when '300000745' #neighborhood
               hier_geo[:city_section] = tgn_term
-            when '21471/island'
+            when '300008791', '300387062' #island
               hier_geo[:island] = tgn_term
-            when '81101/area', '22101/general region', '83210/deserted settlement', '81501/historical region', '81126/national division'
+            when '300387575', '300387346', '300167671', '300387178', '300387082' #'81101/area', '22101/general region', '83210/deserted settlement', '81501/historical region', '81126/national division'
               hier_geo[:area] = tgn_term
-            else
-              non_hier_geo = tgn_term
-          end
-        end
-
-        # parent data for <mods:hierarchicalGeographic>
-        if tgnrec.at_xpath("//Parent_String")
-          parents = tgnrec.at_xpath("//Parent_String").children.to_s.split('], ')
-          parents.each do |parent|
-            if parent.include? '(continent)'
-              hier_geo[:continent] = parent
-            elsif parent.include? '(nation)'
-              hier_geo[:country] = parent
-            elsif parent.include? '(province)'
-              hier_geo[:province] = parent
-            elsif (parent.include? '(region)') || (parent.include? '(union)') || (parent.include? '(semi-independent political entity)')
-              hier_geo[:region] = parent
-            elsif (parent.include? '(state)') || (parent.include? '(department)') || (parent.include? '(governorate)') || (parent.include?('(national district)') && parent.include?('District of Columbia'))
-              hier_geo[:state] = parent
-            elsif (parent.include? '(territory)') || (parent.include? '(dependent state)') || (parent.include? '(union territory)') || (parent.include? '(national district)')
-              hier_geo[:territory] = parent
-            elsif parent.include? '(county)'
-              hier_geo[:county] = parent
-            elsif parent.include? '(inhabited place)'
-              hier_geo[:city] = parent
-            elsif parent.include? '(neighborhood)'
-              hier_geo[:city_section] = parent
-            elsif parent.include? '(island)'
-              hier_geo[:island] = parent
-            elsif (parent.include? '(area)') || (parent.include? '(general region)') || (parent.include? '(deserted settlement)') || (parent.include? '(historical region)') || (parent.include? '(national division)')
-              hier_geo[:area] = parent
-            end
-          end
-          hier_geo.each do |k,v|
-            hier_geo[k] = v.gsub(/ \(.*/,'')
           end
         end
 
@@ -380,8 +345,9 @@ EXAMPLE SPARQL:
 
     end
 
+
     def self.tgn_id_from_geo_hash(geo_hash)
-      return nil if Bplgeo::TGN.getty_username == '<username>'
+      return nil if Bplgeo::TGN.tgn_enabled != 'true'
 
       geo_hash = geo_hash.clone
 
@@ -580,18 +546,10 @@ GROUP BY ?object_identifier
         as_json = JSON.parse(tgn_response.body)
 
         #This is ugly and needs to be redone to achieve better recursive...
-        if as_json["results"]["bindings"].first["object_identifier"].blank?
-          if neighborhood_part.present?
-            geo_hash[:neighborhood_part] = nil
-            geo_hash = tgn_id_from_geo_hash(geo_hash)
-          elsif city_part.present?
-            geo_hash[:city_part] = nil
-            geo_hash = tgn_id_from_geo_hash(geo_hash)
-          end
-
-          return nil
-        else
+        if as_json["results"]["bindings"].first["object_identifier"].present?
           return_hash[:id] = as_json["results"]["bindings"].first["object_identifier"]["value"]
+        else
+          return nil
         end
       end
 
