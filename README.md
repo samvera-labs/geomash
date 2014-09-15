@@ -11,14 +11,12 @@ Add this line to your application's Gemfile:
 
     gem 'bplgeo'
 
-The following needs to be obtained for optimal configuration. If any of these are skipped, those resources won't be
+The following options can all be configured. If any of these are skipped, those resources won't be
 available.
 
     Bing API key: http://www.bingmapsportal.com
 
     geonames API account: http://www.geonames.org/login
-
-    TGN API account: ???? (believe it will be available free soon)
 
     Mapquest API key: http://developer.mapquest.com/web/products/open
     (NOTE: Recommended to skip this API key. I can't get reliable / good results. I've left in support just in case
