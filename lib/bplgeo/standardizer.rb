@@ -62,6 +62,9 @@ module Bplgeo
       #Strip any leading periods or commas from junk terms
       geo_term = geo_term.gsub(/^[\.,]+/, '').strip
 
+      #Replace any four TGN dashes from removing a junk term
+      geo_term = geo_term.gsub('----', '--')
+
       #Replace any semicolons with commas... possible strip them?
       geo_term = geo_term.gsub(';', ',')
 

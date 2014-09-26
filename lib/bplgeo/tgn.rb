@@ -8,7 +8,7 @@ module Bplgeo
     end
 
     def self.tgn_enabled
-      bplgeo_config[:tgn_enabled] || 'true'
+      bplgeo_config[:tgn_enabled] || true
     end
 
 =begin
@@ -187,7 +187,7 @@ EXAMPLE SPARQL:
 =end
 
     def self.get_tgn_data(tgn_id)
-      return nil if Bplgeo::TGN.tgn_enabled != 'true'
+      return nil if Bplgeo::TGN.tgn_enabled != true
 
       tgn_main_term_info = {}
       #broader_place_type_list = ["http://vocab.getty.edu/tgn/#{tgn_id}"]
@@ -347,7 +347,7 @@ EXAMPLE SPARQL:
 
 
     def self.tgn_id_from_geo_hash(geo_hash)
-      return nil if Bplgeo::TGN.tgn_enabled != 'true'
+      return nil if Bplgeo::TGN.tgn_enabled != true
 
       geo_hash = geo_hash.clone
 
@@ -409,6 +409,8 @@ WHERE
   {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387176>} UNION
   {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387122>} UNION
   {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000776>} UNION
+  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300236112>} UNION
+  {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300008347>} UNION
   {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387081>} .
   ?x <http://www.w3.org/2000/01/rdf-schema#label> ?object_label .
   FILTER regex(?object_label, "^#{state_part}$", "i" )
@@ -427,6 +429,8 @@ WHERE
 GROUP BY ?object_identifier
 }
 
+        #FIXME Temporary: For Bplgeo.parse('Aknīste (Latvia)', true), seems to be a neighborhood placed in state
+        # {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300008347>} UNION
       elsif state_part.present? && city_part.present? && neighborhood_part.blank?
         #Limited to only inhabited places at the moment...
         query = %{SELECT ?object_identifier
@@ -459,6 +463,8 @@ WHERE
        {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387176>} UNION
        {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387122>} UNION
        {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000776>} UNION
+       {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300236112>} UNION
+       {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300008347>} UNION
        {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387081>} .
        ?parent_state <http://www.w3.org/2000/01/rdf-schema#label> ?state_label .
        FILTER regex(?state_label, "^#{state_part}$", "i" )
@@ -469,6 +475,8 @@ WHERE
 }
 GROUP BY ?object_identifier
 }
+
+
       elsif state_part.present? && city_part.present? && neighborhood_part.present?
         #Limited to only to neighborhoods currently...
         query = %{SELECT ?object_identifier
@@ -501,6 +509,8 @@ WHERE
        {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387176>} UNION
        {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387122>} UNION
        {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000776>} UNION
+       {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300236112>} UNION
+       {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300008347>} UNION
        {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387081>} .
        ?parent_state <http://www.w3.org/2000/01/rdf-schema#label> ?state_label .
        FILTER regex(?state_label, "^#{state_part}$", "i" )
@@ -521,7 +531,7 @@ WHERE
   }
 
 }
-GROUP BY ?object_identifier
+GROUP BY ?object_identifierquery
 }
 
 
@@ -530,6 +540,7 @@ GROUP BY ?object_identifier
       end
 
       begin
+
         if retry_count > 0
           sleep(sleep_time)
         end
@@ -546,7 +557,7 @@ GROUP BY ?object_identifier
         as_json = JSON.parse(tgn_response.body)
 
         #This is ugly and needs to be redone to achieve better recursive...
-        if as_json["results"]["bindings"].first["object_identifier"].present?
+        if as_json["results"]["bindings"].present? && as_json["results"]["bindings"].first["object_identifier"].present?
           return_hash[:id] = as_json["results"]["bindings"].first["object_identifier"]["value"]
         else
           return nil
