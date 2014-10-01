@@ -59,6 +59,7 @@ Gemfile.lock
 /hydra-jetty/*
 /*jetty*
 /test/dummy/log/*
+/pkg/*
 
 # Ignore edited Linux files #
 #############################

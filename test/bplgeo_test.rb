@@ -1,5 +1,11 @@
 require 'test_helper'
 
+#Historical stuff like Jews--Soviet Union--History--Catalogs ?
+# Registers of births, etc.--Canada, Western totally borked
+
+#Synagogues--Germany--Baden-Württemberg--Directories  -> doesn't match as google returns Baden-Württemberg as
+#Baden-Wurttemberg . No matches http://vocab.getty.edu/tgn/7003692
+
 class BplgeoTest < ActiveSupport::TestCase
 
   def test_parse_with_flag
@@ -13,6 +19,28 @@ class BplgeoTest < ActiveSupport::TestCase
     assert_equal '4930956', result[:geonames][:id] if Bplgeo::Geonames.geonames_username != '<username>'
     assert_equal false, result[:geonames][:original_string_differs] if Bplgeo::Geonames.geonames_username != '<username>'
 
+    #Slight variation problem with neighborhood: 11. Bezirk (Vienna, Austria)--Biography
+    Bplgeo.parse('15. Bezirk (Rudolfsheim-Fünfhaus, Vienna, Austria)--Exhibitions', true)
+    assert_equal 'Vienna', result[:city_part]
+    assert_equal 'Vienna', result[:state_part]
+    assert_equal 'Austria', result[:country_part]
+    assert_equal 'Rudolfsheim-Fünfhaus', result[:neighborhood_part]
+    assert_equal nil, result[:street_part]
+    assert_equal '7003321', result[:tgn][:id] if Bplgeo::TGN.tgn_enabled == true
+    assert_equal true, result[:tgn][:original_string_differs] if Bplgeo::TGN.tgn_enabled == true
+    assert_equal 'fixme', result[:geonames][:id] if Bplgeo::Geonames.geonames_username != '<username>'
+    assert_equal false, result[:geonames][:original_string_differs] if Bplgeo::Geonames.geonames_username != '<username>'
+
+    Bplgeo.parse('Synagogues--Germany--Baden-Württemberg--Directories', true)
+    assert_equal nil, result[:city_part]
+    assert_equal 'Baden-Württemberg', result[:state_part]
+    assert_equal 'Germany', result[:country_part]
+    assert_equal nil, result[:neighborhood_part]
+    assert_equal nil, result[:street_part]
+    assert_equal '7003692', result[:tgn][:id] if Bplgeo::TGN.tgn_enabled == true
+    assert_equal true, result[:tgn][:original_string_differs] if Bplgeo::TGN.tgn_enabled == true
+    assert_equal 'fixme', result[:geonames][:id] if Bplgeo::Geonames.geonames_username != '<username>'
+    assert_equal false, result[:geonames][:original_string_differs] if Bplgeo::Geonames.geonames_username != '<username>'
 
   end
 

@@ -531,7 +531,7 @@ WHERE
   }
 
 }
-GROUP BY ?object_identifierquery
+GROUP BY ?object_identifier
 }
 
 
