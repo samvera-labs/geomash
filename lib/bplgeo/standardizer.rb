@@ -219,5 +219,31 @@ module Bplgeo
     def self.utf8Encode(value)
       return HTMLEntities.new.decode(ActionView::Base.full_sanitizer.sanitize(value.to_s.gsub(/\r?\n?\t/, ' ').gsub(/\r?\n/, ' ').gsub(/<br[\s]*\/>/,' '))).strip
     end
+
+
+    def self.try_with_entered_names(geo_hash)
+      geo_hash_local = geo_hash.clone
+      if geo_hash_local[:neighborhood_part].present?
+         orig_string_check = geo_hash_local[:standardized_term].gsub(',', ' ').squish.split(' ').select { |value| value.downcase.to_ascii == geo_hash_local[:neighborhood_part].downcase.to_ascii}
+         geo_hash_local[:neighborhood_part] = orig_string_check.first.strip if orig_string_check.present? && orig_string_check != geo_hash_local[:neighborhood_part]
+         return geo_hash_local
+      end
+
+      if geo_hash_local[:city_part].present?
+        orig_string_check = geo_hash_local[:standardized_term].gsub(',', ' ').squish.split(' ').select { |value| value.downcase.to_ascii == geo_hash_local[:city_part].downcase.to_ascii}
+        geo_hash_local[:city_part] = orig_string_check.first.strip if orig_string_check.present?
+        return geo_hash_local
+      end
+
+
+      if geo_hash_local[:state_part].present?
+        orig_string_check = geo_hash_local[:standardized_term].gsub(',', ' ').squish.split(' ').select { |value| value.downcase.to_ascii == geo_hash_local[:state_part].downcase.to_ascii}
+        geo_hash_local[:state_part] = orig_string_check.first.strip if orig_string_check.present?
+        return geo_hash_local
+      end
+
+      return nil
+    end
+
   end
 end

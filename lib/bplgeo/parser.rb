@@ -202,7 +202,7 @@ module Bplgeo
           if (result['types'] & ['street number', 'route', 'establishment', 'transit_station', 'bus_station']).present? || (result['types'].include?('neighborhood') && !result['types'].include?('political'))
             #return_hash[:term_differs_from_tgn] = true
             #TODO: Not implemented for Google results right now.
-            return_hash[:street_part] = 'TODO: Not Implemented for Google Results'
+            #return_hash[:street_part] = 'TODO: Not Implemented for Google Results'
             return_hash[:coords] = {:latitude=>google_api_result.first.data['geometry']['location']['lat'].to_s,
                                          :longitude=>google_api_result.first.data['geometry']['location']['lng'].to_s,
                                          :combined=>google_api_result.first.data['geometry']['location']['lat'].to_s + ',' + google_api_result.first.data['geometry']['location']['lng'].to_s}

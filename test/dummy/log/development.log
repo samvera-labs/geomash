@@ -107,3 +107,72 @@ ETHON: performed EASY url= response_code=200 return_code=ok total_time=7.807209
 ETHON: performed EASY url= response_code=200 return_code=ok total_time=3.658587
 ETHON: performed EASY url= response_code=200 return_code=ok total_time=7.986697
 ETHON: performed EASY url= response_code=200 return_code=ok total_time=63.680395
+ETHON: Libcurl initialized
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=10.597687
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=3.6817130000000002
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.74054
+ETHON: Libcurl initialized
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=8.107999
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=3.848968
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.338008
+ETHON: Libcurl initialized
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=8.295994
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=3.854097
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.440999
+ETHON: Libcurl initialized
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=7.864847
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=3.921154
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.328893
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=7.660633
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=3.684037
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.522408
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=1.021923
+ETHON: Libcurl initialized
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=8.999457
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=4.026585
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=23.41376
+ETHON: Libcurl initialized
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=8.851533
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=3.981381
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=1.097474
+ETHON: Libcurl initialized
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=8.342153
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=3.846007
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.312021
+ETHON: Libcurl initialized
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=7.424281
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=3.609865
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.436887
+ETHON: Libcurl initialized
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=7.3829080000000005
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=3.792246
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.279027
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=3.992137
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.25112900000000005
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.270738
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=1.002304
+ETHON: Libcurl initialized
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=8.286386
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=3.984613
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.926513
+ETHON: Libcurl initialized
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=60.599389
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.376641
+ETHON: Libcurl initialized
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=60.617855
+ETHON: Libcurl initialized
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=60.178312
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.40399300000000005
+ETHON: Libcurl initialized
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=60.173554
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.396986
+ETHON: Libcurl initialized
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=60.209276
+ETHON: Libcurl initialized
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=60.222859
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=60.100468
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.418045
+ETHON: Libcurl initialized
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=3.968398
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.317469
+ETHON: performed EASY url= response_code=200 return_code=ok total_time=0.130663

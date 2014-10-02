@@ -9,18 +9,18 @@ require 'test_helper'
 class BplgeoTest < ActiveSupport::TestCase
 
   def test_parse_with_flag
-    Bplgeo.parse('Abbeville (France)--History--20th century.', true)
-    assert_equal 'France', result[:city_part]
+    result = Bplgeo.parse('Abbeville (France)--History--20th century.', true)
+    assert_equal 'Abbeville', result[:city_part]
     assert_equal 'Picardy', result[:state_part]
     assert_equal 'France', result[:country_part]
     assert_equal nil, result[:street_part]
-    assert_equal '7013445', result[:tgn][:id] if Bplgeo::TGN.tgn_enabled == true
+    assert_equal '7010587', result[:tgn][:id] if Bplgeo::TGN.tgn_enabled == true
     assert_equal true, result[:tgn][:original_string_differs] if Bplgeo::TGN.tgn_enabled == true
-    assert_equal '4930956', result[:geonames][:id] if Bplgeo::Geonames.geonames_username != '<username>'
-    assert_equal false, result[:geonames][:original_string_differs] if Bplgeo::Geonames.geonames_username != '<username>'
+    assert_equal '2987374', result[:geonames][:id] if Bplgeo::Geonames.geonames_username != '<username>'
+    assert_equal true, result[:geonames][:original_string_differs] if Bplgeo::Geonames.geonames_username != '<username>'
 
     #Slight variation problem with neighborhood: 11. Bezirk (Vienna, Austria)--Biography
-    Bplgeo.parse('15. Bezirk (Rudolfsheim-Fünfhaus, Vienna, Austria)--Exhibitions', true)
+    result = Bplgeo.parse('15. Bezirk (Rudolfsheim-Fünfhaus, Vienna, Austria)--Exhibitions', true)
     assert_equal 'Vienna', result[:city_part]
     assert_equal 'Vienna', result[:state_part]
     assert_equal 'Austria', result[:country_part]
@@ -28,19 +28,19 @@ class BplgeoTest < ActiveSupport::TestCase
     assert_equal nil, result[:street_part]
     assert_equal '7003321', result[:tgn][:id] if Bplgeo::TGN.tgn_enabled == true
     assert_equal true, result[:tgn][:original_string_differs] if Bplgeo::TGN.tgn_enabled == true
-    assert_equal 'fixme', result[:geonames][:id] if Bplgeo::Geonames.geonames_username != '<username>'
-    assert_equal false, result[:geonames][:original_string_differs] if Bplgeo::Geonames.geonames_username != '<username>'
+    assert_equal '2779138', result[:geonames][:id] if Bplgeo::Geonames.geonames_username != '<username>'
+    assert_equal true, result[:geonames][:original_string_differs] if Bplgeo::Geonames.geonames_username != '<username>'
 
-    Bplgeo.parse('Synagogues--Germany--Baden-Württemberg--Directories', true)
+    result = Bplgeo.parse('Synagogues--Germany--Baden-Württemberg--Directories', true)
     assert_equal nil, result[:city_part]
-    assert_equal 'Baden-Württemberg', result[:state_part]
+    assert_equal 'Baden-Wurttemberg', result[:state_part]
     assert_equal 'Germany', result[:country_part]
     assert_equal nil, result[:neighborhood_part]
     assert_equal nil, result[:street_part]
     assert_equal '7003692', result[:tgn][:id] if Bplgeo::TGN.tgn_enabled == true
     assert_equal true, result[:tgn][:original_string_differs] if Bplgeo::TGN.tgn_enabled == true
-    assert_equal 'fixme', result[:geonames][:id] if Bplgeo::Geonames.geonames_username != '<username>'
-    assert_equal false, result[:geonames][:original_string_differs] if Bplgeo::Geonames.geonames_username != '<username>'
+    assert_equal '2953481', result[:geonames][:id] if Bplgeo::Geonames.geonames_username != '<username>'
+    assert_equal true, result[:geonames][:original_string_differs] if Bplgeo::Geonames.geonames_username != '<username>'
 
   end
 
@@ -62,7 +62,7 @@ class BplgeoTest < ActiveSupport::TestCase
     assert_equal nil, result[:street_part]
     assert_equal '7007567', result[:tgn][:id] if Bplgeo::TGN.tgn_enabled == true
     assert_equal false, result[:tgn][:original_string_differs] if Bplgeo::TGN.tgn_enabled == true
-    assert_equal '5128638', result[:geonames][:id] if Bplgeo::Geonames.geonames_username != '<username>'
+    assert_equal '5128581', result[:geonames][:id] if Bplgeo::Geonames.geonames_username != '<username>'
     assert_equal false, result[:geonames][:original_string_differs] if Bplgeo::Geonames.geonames_username != '<username>'
 
     result = Bplgeo.parse('Washington, DC')

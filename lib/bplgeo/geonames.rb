@@ -69,15 +69,19 @@ module Bplgeo
       #Don't do both neighborhood and city!
       if geo_hash[:neighborhood_part].present?
         geonames_search_array << geo_hash[:neighborhood_part]
+        exact_name_term = geo_hash[:neighborhood_part]
       elsif geo_hash[:city_part].present?
         geonames_search_array << geo_hash[:city_part]
+        exact_name_term = geo_hash[:neighborhood_part]
       end
 
       geonames_search_array << geo_hash[:state_part] if geo_hash[:state_part].present?
+      exact_name_term ||= geo_hash[:neighborhood_part]
       geonames_search_array << geo_hash[:country_part] if geo_hash[:country_part].present?
+      exact_name_term ||= geo_hash[:country_part]
       geonames_search_string = geonames_search_array.join(', ')
 
-      match_term =  geonames_search_array.first.to_ascii.downcase.strip
+      exact_name_term =  geonames_search_array.first.strip
 
       begin
         if retry_count > 0
@@ -85,7 +89,7 @@ module Bplgeo
         end
         retry_count = retry_count + 1
 
-        geonames_response = Typhoeus::Request.get("http://api.geonames.org/search?username=#{self.geonames_username}&lang=en&style=FULL&q=" + CGI.escape(geonames_search_string))
+        geonames_response = Typhoeus::Request.get("http://api.geonames.org/search?username=#{self.geonames_username}&lang=en&style=FULL&q=#{CGI.escape(geonames_search_string)}&name_equals=#{CGI.escape(exact_name_term)}&country=#{Country.find_country_by_name(geo_hash[:country_part]).alpha2}")
 
       end until (geonames_response.code != 500 || retry_count == max_retry)
 
@@ -93,43 +97,38 @@ module Bplgeo
 
         parsed_xml = Nokogiri::Slop(geonames_response.body)
 
+        begin
+          raise "geonames status error message of: #{parsed_xml.to_s}" if parsed_xml.geonames.status
+        rescue
+          #Do nothing but FIXME to not use slop
+        end
+
         #This is ugly and needs to be redone to achieve better recursive...
         if parsed_xml.geonames.totalResultsCount.text == '0'
-          if neighborhood_part.present?
-            geo_hash[:neighborhood_part] = nil
-            geo_hash = geonames_id_from_geo_hash(geo_hash)
-          elsif city_part.present?
-            geo_hash[:city_part] = nil
-            geo_hash = geonames_id_from_geo_hash(geo_hash)
+          if geo_hash[:neighborhood_part].present?
+            geo_hash_temp = geo_hash.clone
+            geo_hash_temp[:neighborhood_part] = nil
+            return_hash = geonames_id_from_geo_hash(geo_hash_temp)
+            return return_hash if return_hash.present?
+          elsif geo_hash[:city_part].present?
+            geo_hash_temp = geo_hash.clone
+            geo_hash_temp[:city_part] = nil
+            return_hash = geonames_id_from_geo_hash(geo_hash_temp)
+            return return_hash if return_hash.present?
           end
 
-          return geo_hash
+          return nil
         end
 
-        #Exact Match
-        parsed_xml.geonames.geoname.each do |geoname|
-
-          current_term = geoname.toponymName.text.to_ascii.downcase.strip
-
-          if current_term == match_term  && return_hash.blank?
-            return_hash[:id] = geoname.geonameId.text
-            return_hash[:original_string_differs] = Bplgeo::Standardizer.parsed_and_original_check(geo_hash)
-            break
-          end
+        #Exact Match ... FIXME to not use Slop
+        if parsed_xml.geonames.geoname.class == Nokogiri::XML::Element
+          return_hash[:id] = parsed_xml.geonames.geoname.geonameId.text
+          return_hash[:rdf] = "http://sws.geonames.org/#{return_hash[:id]}/about.rdf"
+        elsif parsed_xml.geonames.geoname.class ==Nokogiri::XML::NodeSet
+          return_hash[:id] = parsed_xml.geonames.geoname.first.geonameId.text
+          return_hash[:rdf] = "http://sws.geonames.org/#{return_hash[:id]}/about.rdf"
         end
-
-        if return_hash.blank?
-          #Starts With
-          parsed_xml.geonames.geoname.each do |geoname|
-
-            current_term = geoname.toponymName.text.to_ascii.downcase.strip
-
-            if current_term.starts_with?(match_term) && return_hash.blank?
-              return_hash[:id] = geoname.geonameId.text
-              return_hash[:original_string_differs] = Bplgeo::Standardizer.parsed_and_original_check(geo_hash)
-            end
-          end
-        end
+        return_hash[:original_string_differs] = Bplgeo::Standardizer.parsed_and_original_check(geo_hash)
 
       end
 

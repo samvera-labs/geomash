@@ -559,6 +559,7 @@ GROUP BY ?object_identifier
         #This is ugly and needs to be redone to achieve better recursive...
         if as_json["results"]["bindings"].present? && as_json["results"]["bindings"].first["object_identifier"].present?
           return_hash[:id] = as_json["results"]["bindings"].first["object_identifier"]["value"]
+          return_hash[:rdf] = "http://vocab.getty.edu/tgn/#{return_hash[:id]}.rdf"
         else
           return nil
         end
