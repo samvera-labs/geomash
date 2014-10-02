@@ -37,6 +37,7 @@ bplgeo*.gem
 *.sqlite
 *.sqlite3
 *.sql
+*.log
 
 # Specific Files to ignore #
 ############################

@@ -14,13 +14,16 @@ Add this line to your application's Gemfile:
 The following options can all be configured. If any of these are skipped, those resources won't be
 available.
 
-    Bing API key: http://www.bingmapsportal.com
+    tgn_enabled: <true or false>
 
     geonames API account: http://www.geonames.org/login
 
     Mapquest API key: http://developer.mapquest.com/web/products/open
     (NOTE: Recommended to skip this API key. I can't get reliable / good results. I've left in support just in case
     someone wants to still use it or can improve this).
+
+    Bing API key: http://www.bingmapsportal.com
+    (NOTE: Only semi-reliable as a geographic source. Recommended to skip this as well).
 
 You will need to use the "bplgeo.yml.sample" file in the test/dummy/config folder as "bplgeo.yml" in whatever
 application you plan to use this gem in. If you have directly checked out this repository, you will need to rename

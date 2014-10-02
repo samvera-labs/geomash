@@ -25,7 +25,7 @@ module Bplgeo
       return_hash = Bplgeo::Parser.parse_google_api(term, parse_term)
     end
 
-    if return_hash.present?
+    if return_hash[:country_part].present?
       #FIXME
       return_hash[:tgn] = Bplgeo::TGN.tgn_id_from_geo_hash(return_hash)
 

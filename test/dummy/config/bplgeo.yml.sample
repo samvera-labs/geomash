@@ -3,6 +3,7 @@ development:
   geonames_username: <username>
   #NOTE: Mapquest is super unreliable on its matches...
   mapquest_key: <mapquest_key>
+  #NOTE: Bing also fairly unreliable but mostly works...
   bing_key: <bing_key>
   timeout: 7
 test: &TEST_
@@ -10,6 +11,7 @@ test: &TEST_
   geonames_username: <username>
   #NOTE: Mapquest is super unreliable on its matches...
   mapquest_key: <mapquest_key>
+  #NOTE: Bing also fairly unreliable but mostly works...
   bing_key: <bing_key>
   timeout: 7
 production:
@@ -17,5 +19,6 @@ production:
   geonames_username: <username>
   #NOTE: Mapquest is super unreliable on its matches...
   mapquest_key: <mapquest_key>
+  #NOTE: Bing also fairly unreliable but mostly works...
   bing_key: <bing_key>
   timeout: 7
