@@ -268,8 +268,9 @@ EXAMPLE SPARQL:
         end
 
         #Broader places
+        #FIXME: could parse xml:lang instead of the three optional clauses now... didn't expect places to lack a default preferred label.
 
-        query = "SELECT ?identifier_place ?place_label_default ?place_label_en ?aat_pref WHERE {"
+        query = "SELECT ?identifier_place ?place_label_default ?place_label_en ?place_label_remaining ?aat_pref WHERE {"
 
         broader_place_type_list.each do |place_uri|
           query += %{{<#{place_uri}> <http://purl.org/dc/elements/1.1/identifier> ?identifier_place .
@@ -279,23 +280,29 @@ EXAMPLE SPARQL:
         OPTIONAL {<#{place_uri}> <http://www.w3.org/2004/02/skos/core#prefLabel> ?place_label_default
                  FILTER langMatches( lang(?place_label_default), "" )
                  }
+        OPTIONAL {<#{place_uri}> <http://www.w3.org/2004/02/skos/core#prefLabel> ?place_label_remaining
+                 FILTER(!langMatches( lang(?place_label_remaining), "" ) && !langMatches( lang(?place_label_remaining), "en" ))
+                 }
         <#{place_uri}> <http://vocab.getty.edu/ontology#placeTypePreferred> ?aat_pref
        } UNION
      }
         end
 
         query = query[0..-12]
-        query += ". } GROUP BY ?identifier_place ?place_label_default ?place_label_en ?aat_pref"
+        query += ". } GROUP BY ?identifier_place ?place_label_default ?place_label_en ?place_label_remaining ?aat_pref"
 
         tgn_response_for_aat = Typhoeus::Request.get("http://vocab.getty.edu/sparql.json", :params=>{:query=>query})
         as_json_tgn_response_for_aat = JSON.parse(tgn_response_for_aat.body)
 
         as_json_tgn_response_for_aat["results"]["bindings"].each do |aat_response|
           tgn_term_type = aat_response['aat_pref']['value'].split('/').last
+
           if aat_response['place_label_en'].present? && aat_response['place_label_en']['value'] != '-'
             tgn_term = aat_response['place_label_en']['value']
-          else
+          elsif aat_response['place_label_default'].present? && aat_response['place_label_default']['value'] != '-'
             tgn_term = aat_response['place_label_default']['value']
+          else
+            tgn_term = aat_response['place_label_remaining']['value']
           end
 
           case tgn_term_type
