@@ -290,6 +290,7 @@ EXAMPLE SPARQL:
 
         query = query[0..-12]
         query += ". } GROUP BY ?identifier_place ?place_label_default ?place_label_en ?place_label_remaining ?aat_pref"
+        query = query.squish
 
         tgn_response_for_aat = Typhoeus::Request.get("http://vocab.getty.edu/sparql.json", :params=>{:query=>query})
         as_json_tgn_response_for_aat = JSON.parse(tgn_response_for_aat.body)
@@ -553,6 +554,7 @@ GROUP BY ?object_identifier
         end
         retry_count = retry_count + 1
 
+      query = query.squish
        tgn_response = Typhoeus::Request.get("http://vocab.getty.edu/sparql.json", :params=>{:query=>query})
 
       end until (tgn_response.code != 500 || retry_count == max_retry)
