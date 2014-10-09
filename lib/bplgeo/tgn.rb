@@ -292,7 +292,7 @@ EXAMPLE SPARQL:
         query += ". } GROUP BY ?identifier_place ?place_label_default ?place_label_en ?place_label_remaining ?aat_pref"
         query = query.squish
 
-        tgn_response_for_aat = Typhoeus::Request.get("http://vocab.getty.edu/sparql.json", :params=>{:query=>query})
+        tgn_response_for_aat = Typhoeus::Request.post("http://vocab.getty.edu/sparql.json", :body=>{:query=>query})
         as_json_tgn_response_for_aat = JSON.parse(tgn_response_for_aat.body)
 
         as_json_tgn_response_for_aat["results"]["bindings"].each do |aat_response|
