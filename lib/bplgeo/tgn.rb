@@ -199,6 +199,60 @@ EXAMPLE SPARQL:
 
       as_json_tgn_response = JSON.parse(primary_tgn_response.body)
 
+      #There is a bug with some TGN JSON files currently. Example: http://vocab.getty.edu/tgn/7014203.json . Per an email
+      # with Getty, this is a hackish workaround for now.
+      if(as_json_tgn_response['results'].blank?)
+        query = %{
+          PREFIX tgn: <http://vocab.getty.edu/tgn/>
+          PREFIX gvp: <http://vocab.getty.edu/ontology#>
+      PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+      PREFIX dct: <http://purl.org/dc/terms/>
+          PREFIX bibo: <http://purl.org/ontology/bibo/>
+          PREFIX skosxl: <http://www.w3.org/2008/05/skos-xl#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      PREFIX iso: <http://purl.org/iso25964/skos-thes#>
+      PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+          PREFIX schema: <http://schema.org/>
+          CONSTRUCT {
+            ?s  ?p1 ?o1.
+            ?ac ?p2 ?o2.
+            ?t  ?p3 ?o3.
+            ?ss ?p4 ?o4.
+            ?ts ?p6 ?o6.
+            ?st ?p7 ?o7.
+            ?ar ?p8 ?o8.
+            ?l1 ?p9 ?o9.
+            ?l2 ?pA ?oA.
+            ?pl ?pB ?oB.
+            ?ge ?pC ?oC.
+          } WHERE {
+        BIND (tgn:#{tgn_id} as ?s)
+        {?s ?p1 ?o1 FILTER(!isBlank(?o1) &&
+            !(?p1 in (gvp:narrowerExtended, skos:narrowerTransitive, skos:semanticRelation)))}
+      UNION {?s skos:changeNote ?ac. ?ac ?p2 ?o2}
+      UNION {?s dct:source ?ss. ?ss a bibo:DocumentPart. ?ss ?p4 ?o4}
+      UNION {?s skos:scopeNote|skosxl:prefLabel|skosxl:altLabel ?t.
+                                                                {?t ?p3 ?o3 FILTER(!isBlank(?o3))}
+      UNION {?t dct:source ?ts. ?ts a bibo:DocumentPart. ?ts ?p6 ?o6}}
+      UNION {?st rdf:subject ?s. ?st ?p7 ?o7}
+      UNION {?s skos:member/^rdf:first ?l1. ?l1 ?p9 ?o9}
+      UNION {?s iso:subordinateArray ?ar FILTER NOT EXISTS {?ar skosxl:prefLabel ?t1}.
+                                                    {?ar ?p8 ?o8}
+      UNION {?ar skos:member/^rdf:first ?l2. ?l2 ?pA ?oA}}
+      UNION {?s foaf:focus ?pl.
+      {?pl ?pB ?oB}
+      UNION {?pl schema:geo ?ge. ?ge ?pC ?oC}}
+      }
+      }
+
+        query = query.squish
+
+        primary_tgn_response = Typhoeus::Request.post("http://vocab.getty.edu/sparql.json", :body=>{:query=>query})
+        as_json_tgn_response = JSON.parse(primary_tgn_response.body)
+      end
+
+
+
       as_json_tgn_response['results']['bindings'].each do |ntriple|
         case ntriple['Predicate']['value']
           when 'http://www.w3.org/2004/02/skos/core#prefLabel'
