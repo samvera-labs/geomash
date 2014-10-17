@@ -189,11 +189,12 @@ EXAMPLE SPARQL:
     def self.get_tgn_data(tgn_id)
       return nil if Bplgeo::TGN.tgn_enabled != true
 
+      tgn_id = tgn_id.strip
+
       tgn_main_term_info = {}
       broader_place_type_list = []
 
-      #primary_tgn_response = Typhoeus::Request.get("http://vocab.getty.edu/download/json", :params=>{:uri=>"http://vocab.getty.edu/tgn/#{tgn_id}.json"})
-      primary_tgn_response = Typhoeus::Request.get("http://vocab.getty.edu/tgn/#{tgn_id}.json", {:follow_location => true})
+      primary_tgn_response = Typhoeus::Request.get("http://vocab.getty.edu/download/json", :params=>{:uri=>"http://vocab.getty.edu/tgn/#{tgn_id}.json"})
 
       return nil if(primary_tgn_response.response_code == 404) #Couldn't find TGN... FIXME: additional check needed if TGN is down?
 
