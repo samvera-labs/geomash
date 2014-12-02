@@ -27,7 +27,6 @@ module Bplgeo
 
         geonames_response = Typhoeus::Request.get("http://api.geonames.org/hierarchy?username=#{self.geonames_username}&lang=en&style=FULL&geonameId=" + geoname_id)
 
-        geonames_response = Typhoeus::Request.get("http://api.geonames.org/hierarchy?username=boston_library&lang=en&style=FULL&geonameId=4946317")
       end until (geonames_response.code != 500 || retry_count == max_retry)
 
       unless geonames_response.code == 500
