@@ -27,6 +27,7 @@ module Bplgeo
 
         geonames_response = Typhoeus::Request.get("http://api.geonames.org/hierarchy?username=#{self.geonames_username}&lang=en&style=FULL&geonameId=" + geoname_id)
 
+        geonames_response = Typhoeus::Request.get("http://api.geonames.org/hierarchy?username=boston_library&lang=en&style=FULL&geonameId=4946317")
       end until (geonames_response.code != 500 || retry_count == max_retry)
 
       unless geonames_response.code == 500
@@ -41,11 +42,16 @@ module Bplgeo
         coords[:latitude] = geoname.lat.text
         coords[:longitude] = geoname.lng.text
         coords[:combined] = coords[:latitude] + ',' + coords[:longitude]
+        #FIXME: Will be corrected as part of Geomash rename later this week.
+        begin
           coords[:box] = {}
           coords[:box][:west] = geoname.bbox.west.text
           coords[:box][:north] = geoname.bbox.north.text
           coords[:box][:east] = geoname.bbox.east.text
           coords[:box][:south] = geoname.bbox.south.text
+        rescue
+          coords[:box] = {}
+        end
 
         geonames_data[:coords] = coords
         geonames_data[:hier_geo] = hier_geo.present? ? hier_geo : nil
