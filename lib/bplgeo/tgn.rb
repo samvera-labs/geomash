@@ -259,6 +259,8 @@ EXAMPLE SPARQL:
           when 'http://www.w3.org/2004/02/skos/core#prefLabel'
             if ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'en'
               tgn_main_term_info[:label_en] = ntriple['Object']['value']
+            elsif  ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'zh-latn-pinyin'
+              tgn_main_term_info[:label_other] = ntriple['Object']['value']
             elsif ntriple['Object']['xml:lang'].blank?
               tgn_main_term_info[:label_default] = ntriple['Object']['value']
             end
@@ -284,7 +286,11 @@ EXAMPLE SPARQL:
       end
 
       hier_geo = {}
-      tgn_term = tgn_main_term_info[:label_en].present? ? tgn_main_term_info[:label_en] : tgn_main_term_info[:label_default]
+      #Default term to best label language...
+      tgn_term = tgn_main_term_info[:label_en]
+      tgn_term ||= tgn_main_term_info[:label_default]
+      tgn_term ||= tgn_main_term_info[:label_other]
+      
       tgn_term_type = tgn_main_term_info[:aat_place].split('/').last
 
       #Initial Term
