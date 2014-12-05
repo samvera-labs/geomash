@@ -290,7 +290,7 @@ EXAMPLE SPARQL:
       tgn_term = tgn_main_term_info[:label_en]
       tgn_term ||= tgn_main_term_info[:label_default]
       tgn_term ||= tgn_main_term_info[:label_other]
-      
+
       tgn_term_type = tgn_main_term_info[:aat_place].split('/').last
 
       #Initial Term
@@ -341,8 +341,11 @@ EXAMPLE SPARQL:
         OPTIONAL {<#{place_uri}> <http://www.w3.org/2004/02/skos/core#prefLabel> ?place_label_default
                  FILTER langMatches( lang(?place_label_default), "" )
                  }
+        OPTIONAL {<#{place_uri}> <http://www.w3.org/2004/02/skos/core#prefLabel> ?place_label_latn_pinyin
+                 FILTER langMatches( lang(?place_label_latn_pinyin), "zh-latn-pinyin" )
+                 }
         OPTIONAL {<#{place_uri}> <http://www.w3.org/2004/02/skos/core#prefLabel> ?place_label_remaining
-                 FILTER(!langMatches( lang(?place_label_remaining), "" ) && !langMatches( lang(?place_label_remaining), "en" ))
+                 FILTER(!langMatches( lang(?place_label_remaining), "" ) && !langMatches( lang(?place_label_remaining), "en" ) && !langMatches( lang(?place_label_remaining), "zh-latn-pinyin" ))
                  }
         <#{place_uri}> <http://vocab.getty.edu/ontology#placeTypePreferred> ?aat_pref
        } UNION
@@ -363,6 +366,8 @@ EXAMPLE SPARQL:
             tgn_term = aat_response['place_label_en']['value']
           elsif aat_response['place_label_default'].present? && aat_response['place_label_default']['value'] != '-'
             tgn_term = aat_response['place_label_default']['value']
+          elsif aat_response['place_label_latn_pinyin'].present? && aat_response['place_label_latn_pinyin']['value'] != '-'
+            tgn_term = aat_response['place_label_latn_pinyin']['value']
           else
             tgn_term = aat_response['place_label_remaining']['value']
           end
