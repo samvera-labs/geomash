@@ -264,6 +264,10 @@ EXAMPLE SPARQL:
             elsif ntriple['Object']['xml:lang'].blank?
               tgn_main_term_info[:label_default] = ntriple['Object']['value']
             end
+          when 'http://www.w3.org/2004/02/skos/core#altLabel'
+            if ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'en'
+              tgn_main_term_info[:label_alt] = ntriple['Object']['value']
+            end
           when 'http://vocab.getty.edu/ontology#placeTypePreferred'
             tgn_main_term_info[:aat_place] = ntriple['Object']['value']
           when 'http://schema.org/latitude'
@@ -290,6 +294,7 @@ EXAMPLE SPARQL:
       tgn_term = tgn_main_term_info[:label_en]
       tgn_term ||= tgn_main_term_info[:label_default]
       tgn_term ||= tgn_main_term_info[:label_other]
+      tgn_term ||= tgn_main_term_info[:label_alt]
 
       tgn_term_type = tgn_main_term_info[:aat_place].split('/').last
 
@@ -344,6 +349,9 @@ EXAMPLE SPARQL:
         OPTIONAL {<#{place_uri}> <http://www.w3.org/2004/02/skos/core#prefLabel> ?place_label_latn_pinyin
                  FILTER langMatches( lang(?place_label_latn_pinyin), "zh-latn-pinyin" )
                  }
+        OPTIONAL {<#{place_uri}> <http://www.w3.org/2004/02/skos/core#altLabel> ?place_label_alt
+                 FILTER langMatches( lang(?place_label_alt), "en" )
+                 }
         OPTIONAL {<#{place_uri}> <http://www.w3.org/2004/02/skos/core#prefLabel> ?place_label_remaining
                  FILTER(!langMatches( lang(?place_label_remaining), "" ) && !langMatches( lang(?place_label_remaining), "en" ) && !langMatches( lang(?place_label_remaining), "zh-latn-pinyin" ))
                  }
@@ -353,7 +361,7 @@ EXAMPLE SPARQL:
         end
 
         query = query[0..-12]
-        query += ". } GROUP BY ?identifier_place ?place_label_default ?place_label_en ?place_label_remaining ?aat_pref"
+        query += ". } GROUP BY ?identifier_place ?place_label_default ?place_label_en ?place_label_latn_pinyin ?place_label_alt ?place_label_remaining ?aat_pref"
         query = query.squish
 
         tgn_response_for_aat = Typhoeus::Request.post("http://vocab.getty.edu/sparql.json", :body=>{:query=>query})
@@ -368,6 +376,8 @@ EXAMPLE SPARQL:
             tgn_term = aat_response['place_label_default']['value']
           elsif aat_response['place_label_latn_pinyin'].present? && aat_response['place_label_latn_pinyin']['value'] != '-'
             tgn_term = aat_response['place_label_latn_pinyin']['value']
+          elsif aat_response['place_label_alt'].present? && aat_response['place_label_alt']['value'] != '-'
+            tgn_term = aat_response['place_label_alt']['value']
           else
             tgn_term = aat_response['place_label_remaining']['value']
           end
