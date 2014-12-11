@@ -252,7 +252,8 @@ EXAMPLE SPARQL:
         as_json_tgn_response = JSON.parse(primary_tgn_response.body)
       end
 
-
+      #FIXME: Temporary hack to determine more cases of non-blank/english place name conflicts that require resolution.
+      label_remaining_check = false
 
       as_json_tgn_response['results']['bindings'].each do |ntriple|
         case ntriple['Predicate']['value']
@@ -263,6 +264,9 @@ EXAMPLE SPARQL:
               tgn_main_term_info[:label_other] = ntriple['Object']['value']
             elsif ntriple['Object']['xml:lang'].blank?
               tgn_main_term_info[:label_default] = ntriple['Object']['value']
+            else
+              label_remaining_check = true if tgn_main_term_info[:label_remaining].present?
+              tgn_main_term_info[:label_remaining] = ntriple['Object']['value']
             end
           when 'http://www.w3.org/2004/02/skos/core#altLabel'
             if ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'en'
@@ -295,6 +299,13 @@ EXAMPLE SPARQL:
       tgn_term ||= tgn_main_term_info[:label_default]
       tgn_term ||= tgn_main_term_info[:label_other]
       tgn_term ||= tgn_main_term_info[:label_alt]
+      if tgn_term.blank?
+        if label_remaining_check
+          raise "Could not determine a single label for TGN: " + tgn_id
+        else
+          tgn_term = tgn_main_term_info[:label_remaining]
+        end
+      end
 
       tgn_term_type = tgn_main_term_info[:aat_place].split('/').last
 
