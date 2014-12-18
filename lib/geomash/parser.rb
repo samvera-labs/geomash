@@ -1,23 +1,23 @@
-module Bplgeo
+module Geomash
   class Parser
 
-    def self.bplgeo_config
+    def self.geomash_config
       root = Rails.root || './test/dummy'
       env = Rails.env || 'test'
 
-      @bplgeo_config ||= YAML::load(ERB.new(IO.read(File.join(root, 'config', 'bplgeo.yml'))).result)[env].with_indifferent_access
+      @geomash_config ||= YAML::load(ERB.new(IO.read(File.join(root, 'config', 'geomash.yml'))).result)[env].with_indifferent_access
     end
 
     def self.mapquest_key
-      bplgeo_config[:mapquest_key] || '<mapquest_key>'
+      geomash_config[:mapquest_key] || '<mapquest_key>'
     end
 
     def self.bing_key
-      bplgeo_config[:bing_key] || '<bing_key>'
+      geomash_config[:bing_key] || '<bing_key>'
     end
 
     def self.timeout
-      bplgeo_config[:timeout]
+      geomash_config[:timeout]
     end
 
     #Note: Limited to only looking at United States places...
@@ -30,8 +30,8 @@ module Bplgeo
 
       return_hash[:original_term] = term
 
-      term = Bplgeo::Standardizer.parse_for_geographic_term(term) if parse_term_flag
-      term = Bplgeo::Standardizer.standardize_geographic_term(term)
+      term = Geomash::Standardizer.parse_for_geographic_term(term) if parse_term_flag
+      term = Geomash::Standardizer.standardize_geographic_term(term)
 
       if term.blank?
         return {}
@@ -76,7 +76,7 @@ module Bplgeo
         return_hash[:country_part] = bing_api_result.first.data["address"]["countryRegion"]
 
         if return_hash[:country_part] == 'United States'
-          return_hash[:state_part] = Bplgeo::Constants::STATE_ABBR[bing_api_result.first.data["address"]["adminDistrict"]]
+          return_hash[:state_part] = Geomash::Constants::STATE_ABBR[bing_api_result.first.data["address"]["adminDistrict"]]
         else
           return_hash[:state_part] = bing_api_result.first.data["address"]["adminDistrict"]
         end
@@ -100,8 +100,8 @@ module Bplgeo
 
       return_hash[:original_term] = term
 
-      term = Bplgeo::Standardizer.parse_for_geographic_term(term) if parse_term_flag
-      term = Bplgeo::Standardizer.standardize_geographic_term(term)
+      term = Geomash::Standardizer.parse_for_geographic_term(term) if parse_term_flag
+      term = Geomash::Standardizer.standardize_geographic_term(term)
 
       if term.blank?
         return {}
@@ -142,7 +142,7 @@ module Bplgeo
         return_hash[:country_part] = Country.new(mapquest_api_result.first.data["adminArea1"]).name
 
         if return_hash[:country_part] == 'United States'
-          return_hash[:state_part] = Bplgeo::Constants::STATE_ABBR[mapquest_api_result.first.data["adminArea3"]] || mapquest_api_result.first.data["adminArea4"]
+          return_hash[:state_part] = Geomash::Constants::STATE_ABBR[mapquest_api_result.first.data["adminArea3"]] || mapquest_api_result.first.data["adminArea4"]
         else
           return_hash[:state_part] = mapquest_api_result.first.data["adminArea3"].gsub(' province', '')
         end
@@ -169,8 +169,8 @@ module Bplgeo
 
       return_hash[:original_term] = term
 
-      term = Bplgeo::Standardizer.parse_for_geographic_term(term) if parse_term_flag
-      term = Bplgeo::Standardizer.standardize_geographic_term(term)
+      term = Geomash::Standardizer.parse_for_geographic_term(term) if parse_term_flag
+      term = Geomash::Standardizer.standardize_geographic_term(term)
 
       #Soviet Union returns back a place in Kazakhstan
       if term.blank? || term == 'Soviet Union'

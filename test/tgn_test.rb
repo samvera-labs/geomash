@@ -2,8 +2,8 @@ require 'test_helper'
 
 class TGNTest < ActiveSupport::TestCase
   def test_tgn_lookup_from_id
-    if Bplgeo::TGN.tgn_enabled == 'true'
-       result = Bplgeo::TGN.get_tgn_data('2051159')
+    if Geomash::TGN.tgn_enabled == 'true'
+       result = Geomash::TGN.get_tgn_data('2051159')
 
        assert_equal '45', result[:coords][:latitude]
        assert_equal '-84.1333', result[:coords][:longitude]
