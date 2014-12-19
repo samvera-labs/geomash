@@ -12,6 +12,14 @@ module Geomash
   require "nokogiri"
   require "htmlentities"
 
+  def self.config
+    @config ||= begin
+                  root = Rails.root || './test/dummy'
+                  env = Rails.env || 'test'
+                  YAML::load(ERB.new(IO.read(File.join(root, 'config', 'geomash.yml'))).result)[env].with_indifferent_access
+                end
+  end
+
   def self.parse(term,parse_term=false)
     return {} if term.blank?
 

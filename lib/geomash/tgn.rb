@@ -2,14 +2,8 @@
 module Geomash
   class TGN
 
-    def self.geomash_config
-      root = Rails.root || './test/dummy'
-      env = Rails.env || 'test'
-      @geomash_config ||= YAML::load(ERB.new(IO.read(File.join(root, 'config', 'geomash.yml'))).result)[env].with_indifferent_access
-    end
-
     def self.tgn_enabled
-      geomash_config[:tgn_enabled] || true
+      Geomash.config[:tgn_enabled] || true
     end
 
 =begin
