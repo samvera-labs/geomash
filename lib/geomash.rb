@@ -11,13 +11,30 @@ module Geomash
   require "typhoeus"
   require "nokogiri"
   require "htmlentities"
+  require "active_support/core_ext/string/filters"
+  require "active_support/hash_with_indifferent_access"
 
   def self.config
-    @config ||= begin
-                  root = Rails.root || './test/dummy'
-                  env = Rails.env || 'test'
-                  YAML::load(ERB.new(IO.read(File.join(root, 'config', 'geomash.yml'))).result)[env].with_indifferent_access
-                end
+    @config ||= YAML::load(File.open(config_path))[env]
+      .with_indifferent_access
+  end
+
+  def self.app_root
+    return @app_root if @app_root
+    @app_root = Rails.root if defined?(Rails) and defined?(Rails.root)
+    @app_root ||= APP_ROOT if defined?(APP_ROOT)
+    @app_root ||= '.'
+  end
+
+  def self.env
+    return @env if @env
+    @env = ENV["RAILS_ENV"] = "test" if ENV
+    @env ||= Rails.env if defined?(Rails) and defined?(Rails.root)
+    @env ||= 'development'
+  end
+
+  def self.config_path
+    File.join(app_root, 'config', 'geomash.yml')
   end
 
   def self.parse(term,parse_term=false)
