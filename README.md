@@ -25,9 +25,9 @@ available.
     Bing API key: http://www.bingmapsportal.com
     (NOTE: Only semi-reliable as a geographic source. Recommended to skip this as well).
 
-You will need to use the "geomash.yml.sample" file in the test/dummy/config folder as "geomash.yml" in whatever
+You will need to use the "geomash.yml.sample" file in the `config` folder as "geomash.yml" in whatever
 application you plan to use this gem in. If you have directly checked out this repository, you will need to rename
-"geomash.yml.sample" in that test/dummy/config folder to that "geomash.yml" and fill in the values you have. Then using
+"geomash.yml.sample" in that `config` folder to that "geomash.yml" and fill in the values you have. Then using
 "rake" in the root of the checkout out directly will run unit tests.
 
 ## Usage
