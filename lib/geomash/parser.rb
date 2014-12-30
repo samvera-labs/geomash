@@ -1,23 +1,16 @@
 module Geomash
   class Parser
 
-    def self.geomash_config
-      root = Rails.root || './test/dummy'
-      env = Rails.env || 'test'
-
-      @geomash_config ||= YAML::load(ERB.new(IO.read(File.join(root, 'config', 'geomash.yml'))).result)[env].with_indifferent_access
-    end
-
     def self.mapquest_key
-      geomash_config[:mapquest_key] || '<mapquest_key>'
+      Geomash.config[:mapquest_key] || '<mapquest_key>'
     end
 
     def self.bing_key
-      geomash_config[:bing_key] || '<bing_key>'
+      Geomash.config[:bing_key] || '<bing_key>'
     end
 
     def self.timeout
-      geomash_config[:timeout]
+      Geomash.config[:timeout]
     end
 
     #Note: Limited to only looking at United States places...

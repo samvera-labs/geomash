@@ -1,13 +1,8 @@
 module Geomash
   class Geonames
-    def self.geomash_config
-      root = Rails.root || './test/dummy'
-      env = Rails.env || 'test'
-      @geomash_config ||= YAML::load(ERB.new(IO.read(File.join(root, 'config', 'geomash.yml'))).result)[env].with_indifferent_access
-    end
 
     def self.geonames_username
-      geomash_config[:geonames_username] || '<username>'
+      Geomash.config[:geonames_username] || '<username>'
     end
 
     def self.get_geonames_data(geoname_id)
