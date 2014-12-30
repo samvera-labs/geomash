@@ -2,8 +2,8 @@ require 'test_helper'
 
 class GeonamesTest < ActiveSupport::TestCase
   def test_geonames_lookup_from_id
-    if Bplgeo::Geonames.geonames_username != '<username>'
-      result = Bplgeo::Geonames.get_geonames_data('4984500')
+    if Geomash::Geonames.geonames_username != '<username>'
+      result = Geomash::Geonames.get_geonames_data('4984500')
 
       assert_equal '45.00473', result[:coords][:latitude]
       assert_equal '-84.14389', result[:coords][:longitude]

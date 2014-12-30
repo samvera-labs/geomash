@@ -1,12 +1,12 @@
 $:.push File.expand_path("../lib", __FILE__)
 
 # Maintain your gem's version:
-require "bplgeo/version"
+require "geomash/version"
 
 # Describe your gem and declare its dependencies:
 Gem::Specification.new do |s|
-  s.name        = "bplgeo"
-  s.version     = Bplgeo::VERSION
+  s.name        = "geomash"
+  s.version     = Geomash::VERSION
   s.authors     = ["Boston Public Library"]
   s.email       = ["sanderson@bpl.org"]
   s.homepage    = "http://www.bpl.org"

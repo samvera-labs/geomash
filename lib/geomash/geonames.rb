@@ -1,13 +1,13 @@
-module Bplgeo
+module Geomash
   class Geonames
-    def self.bplgeo_config
+    def self.geomash_config
       root = Rails.root || './test/dummy'
       env = Rails.env || 'test'
-      @bplgeo_config ||= YAML::load(ERB.new(IO.read(File.join(root, 'config', 'bplgeo.yml'))).result)[env].with_indifferent_access
+      @geomash_config ||= YAML::load(ERB.new(IO.read(File.join(root, 'config', 'geomash.yml'))).result)[env].with_indifferent_access
     end
 
     def self.geonames_username
-      bplgeo_config[:geonames_username] || '<username>'
+      geomash_config[:geonames_username] || '<username>'
     end
 
     def self.get_geonames_data(geoname_id)
@@ -61,7 +61,7 @@ module Bplgeo
 
 
     def self.geonames_id_from_geo_hash(geo_hash)
-      return nil if Bplgeo::Geonames.geonames_username == '<username>'
+      return nil if Geomash::Geonames.geonames_username == '<username>'
       geo_hash = geo_hash.clone
 
       max_retry = 3
@@ -133,7 +133,7 @@ module Bplgeo
           return_hash[:id] = parsed_xml.geonames.geoname.first.geonameId.text
           return_hash[:rdf] = "http://sws.geonames.org/#{return_hash[:id]}/about.rdf"
         end
-        return_hash[:original_string_differs] = Bplgeo::Standardizer.parsed_and_original_check(geo_hash)
+        return_hash[:original_string_differs] = Geomash::Standardizer.parsed_and_original_check(geo_hash)
 
       end
 

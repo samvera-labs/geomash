@@ -1,14 +1,15 @@
-module Bplgeo
+# -*- coding: utf-8 -*-
+module Geomash
   class TGN
 
-    def self.bplgeo_config
+    def self.geomash_config
       root = Rails.root || './test/dummy'
       env = Rails.env || 'test'
-      @bplgeo_config ||= YAML::load(ERB.new(IO.read(File.join(root, 'config', 'bplgeo.yml'))).result)[env].with_indifferent_access
+      @geomash_config ||= YAML::load(ERB.new(IO.read(File.join(root, 'config', 'geomash.yml'))).result)[env].with_indifferent_access
     end
 
     def self.tgn_enabled
-      bplgeo_config[:tgn_enabled] || true
+      geomash_config[:tgn_enabled] || true
     end
 
 =begin
@@ -187,7 +188,7 @@ EXAMPLE SPARQL:
 =end
 
     def self.get_tgn_data(tgn_id)
-      return nil if Bplgeo::TGN.tgn_enabled != true
+      return nil if Geomash::TGN.tgn_enabled != true
 
       tgn_id = tgn_id.strip
 
@@ -442,7 +443,7 @@ EXAMPLE SPARQL:
 
 
     def self.tgn_id_from_geo_hash(geo_hash)
-      return nil if Bplgeo::TGN.tgn_enabled != true
+      return nil if Geomash::TGN.tgn_enabled != true
 
       geo_hash = geo_hash.clone
 
@@ -454,11 +455,11 @@ EXAMPLE SPARQL:
 
       state_part = geo_hash[:state_part]
 
-      country_code = Bplgeo::Constants::COUNTRY_TGN_LOOKUP[geo_hash[:country_part]][:tgn_id] unless Bplgeo::Constants::COUNTRY_TGN_LOOKUP[geo_hash[:country_part]].blank?
+      country_code = Geomash::Constants::COUNTRY_TGN_LOOKUP[geo_hash[:country_part]][:tgn_id] unless Geomash::Constants::COUNTRY_TGN_LOOKUP[geo_hash[:country_part]].blank?
       country_code ||= ''
 
 
-      country_part = Bplgeo::Constants::COUNTRY_TGN_LOOKUP[geo_hash[:country_part]][:tgn_country_name] unless Bplgeo::Constants::COUNTRY_TGN_LOOKUP[geo_hash[:country_part]].blank?
+      country_part = Geomash::Constants::COUNTRY_TGN_LOOKUP[geo_hash[:country_part]][:tgn_country_name] unless Geomash::Constants::COUNTRY_TGN_LOOKUP[geo_hash[:country_part]].blank?
       country_part ||= geo_hash[:country_part]
       country_part ||= ''
 
@@ -524,7 +525,7 @@ WHERE
 GROUP BY ?object_identifier
 }
 
-        #FIXME Temporary: For Bplgeo.parse('Aknīste (Latvia)', true), seems to be a neighborhood placed in state
+        #FIXME Temporary: For Geomash.parse('Aknīste (Latvia)', true), seems to be a neighborhood placed in state
         # {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300008347>} UNION
       elsif state_part.present? && city_part.present? && neighborhood_part.blank?
         #Limited to only inhabited places at the moment...
@@ -666,7 +667,7 @@ GROUP BY ?object_identifier
       end
 
       if return_hash.present?
-        return_hash[:original_string_differs] = Bplgeo::Standardizer.parsed_and_original_check(geo_hash)
+        return_hash[:original_string_differs] = Geomash::Standardizer.parsed_and_original_check(geo_hash)
         return return_hash
       else
         return nil

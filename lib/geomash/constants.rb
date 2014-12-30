@@ -1,4 +1,4 @@
-module Bplgeo
+module Geomash
   class Constants
     COUNTRY_TGN_LOOKUP = {}
     COUNTRY_TGN_LOOKUP['United States'] = {:tgn_id=>7012149, :tgn_country_name=>'United States'}
