@@ -1,4 +1,5 @@
-module Bplgeo
+# -*- coding: utf-8 -*-
+module Geomash
   class Standardizer
 
     #Take a subject string and look for potential geographic terms.
@@ -57,7 +58,7 @@ module Bplgeo
       geo_term = geo_term.clone #Don't change original
 
       #Remove common junk terms
-      Bplgeo::Constants::JUNK_TERMS.each { |term| geo_term.gsub!(term, '') }
+      Geomash::Constants::JUNK_TERMS.each { |term| geo_term.gsub!(term, '') }
 
       #Strip any leading periods or commas from junk terms
       geo_term = geo_term.gsub(/^[\.,]+/, '').strip
@@ -95,7 +96,7 @@ module Bplgeo
        geo_list.each do |geo_term|
          geo_term = geo_term.gsub('(','').gsub(')','').gsub('.','').gsub(',','').gsub(';','')
          #Remove common junk terms
-         Bplgeo::Constants::JUNK_TERMS.each { |term| geo_term.gsub!(term, '') }
+         Geomash::Constants::JUNK_TERMS.each { |term| geo_term.gsub!(term, '') }
 
          geo_term = geo_term.squish
 

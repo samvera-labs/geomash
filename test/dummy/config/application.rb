@@ -3,7 +3,7 @@ require File.expand_path('../boot', __FILE__)
 require 'rails/all'
 
 Bundler.require(*Rails.groups)
-require "bplgeo"
+require "geomash"
 
 module Dummy
   class Application < Rails::Application
@@ -20,4 +20,3 @@ module Dummy
     # config.i18n.default_locale = :de
   end
 end
-

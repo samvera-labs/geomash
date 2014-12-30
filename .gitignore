@@ -19,11 +19,11 @@ pickle-email-*.html
 
 # Specific configuration files #
 ################################
-bplgeo.yml
+geomash.yml
 
 # Generated gems #
 ################################
-bplgeo*.gem
+geomash*.gem
 
 # Files to ignore by default in Git #
 #####################################
