@@ -2,7 +2,7 @@ module Geomash
   class Geonames
 
     def self.geonames_username
-      Geomash.config[:geonames_username] || 'geomash_test'
+      Geomash.config[:geonames_username] || '<username>'
     end
 
     def self.get_geonames_data(geoname_id)
