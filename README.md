@@ -53,7 +53,7 @@ To get the hierarchy, official coordinates, and other information, use the funct
 
     Geomash::Geonames.get_geonames_data(geonames_id)
 
-    Geomash::Geonames.get_tgn_data(tgn_id)
+    Geomash::TGN.get_tgn_data(tgn_id)
 
 The are also several functions in the Geomash::Standardizer that may be useful. For instance, there is a geographic list
 dedupper. So, if you have ['Saigon, Vietnam', 'Saigon (Vietnam)'], it can reduce that down to just ['Saigon, Vietnam'].
