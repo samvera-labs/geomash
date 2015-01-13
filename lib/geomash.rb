@@ -28,7 +28,8 @@ module Geomash
 
   def self.env
     return @env if @env
-    @env = ENV["RAILS_ENV"] = "test" if ENV
+    #The following commented line always returns "test" in a rails c production console. Unsure of how to fix this yet...
+    #@env = ENV["RAILS_ENV"] = "test" if ENV
     @env ||= Rails.env if defined?(Rails) and defined?(Rails.root)
     @env ||= 'development'
   end
