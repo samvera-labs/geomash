@@ -3,7 +3,7 @@ module Geomash
   class TGN
 
     def self.tgn_enabled
-      return Geomash.config[:tgn_enabled] if Geomash.config[:tgn_enabled].present?
+      return Geomash.config[:tgn_enabled] unless Geomash.config[:tgn_enabled].nil?
       return true
     end
 
