@@ -3,7 +3,8 @@ module Geomash
   class TGN
 
     def self.tgn_enabled
-      Geomash.config[:tgn_enabled] || true
+      return Geomash.config[:tgn_enabled] if Geomash.config[:tgn_enabled].present?
+      return true
     end
 
 =begin
@@ -308,35 +309,75 @@ EXAMPLE SPARQL:
       if tgn_term.present? && tgn_term_type.present?
         case tgn_term_type
           when '300128176' #continent
-            hier_geo[:continent] = tgn_term
+            hier_geo[:continent] ||= tgn_term
           when '300128207' #nations
-            hier_geo[:country] = tgn_term
+            hier_geo[:country] ||= tgn_term
           when '300000774' #province
-            hier_geo[:province] = tgn_term
+            hier_geo[:province] ||= tgn_term
           when '300236112', '300182722', '300387194', '300387052' #region, union, semi-independent political entity
-            hier_geo[:region] = tgn_term
+            hier_geo[:region] ||= tgn_term
           when '300000776', '300000772', '300235093' #state, department, governorate
-            hier_geo[:state] = tgn_term
+            hier_geo[:state] ||= tgn_term
           when '300387081' #national district
             if tgn_term == 'District of Columbia'
-              hier_geo[:state] = tgn_term
+              hier_geo[:state] ||= tgn_term
             else
-              hier_geo[:territory] = tgn_term
+              hier_geo[:territory] ||= tgn_term
             end
           when '300135982', '300387176', '300387122' #territory, dependent state, union territory
-            hier_geo[:territory] = tgn_term
+            hier_geo[:territory] ||= tgn_term
           when '300000771' #county
-            hier_geo[:county] = tgn_term
+            hier_geo[:county] ||= tgn_term
           when '300008347', '300387068' #inhabited place, independent cities
-            hier_geo[:city] = tgn_term
+            hier_geo[:city] ||= tgn_term
           when '300000745' #neighborhood
-            hier_geo[:city_section] = tgn_term
+            hier_geo[:city_section] ||= tgn_term
           when '300008791', '300387062' #island
-            hier_geo[:island] = tgn_term
+            hier_geo[:island] ||= tgn_term
           when '300387575', '300387346', '300167671', '300387178', '300387082' #'81101/area', '22101/general region', '83210/deserted settlement', '81501/historical region', '81126/national division'
-            hier_geo[:area] = tgn_term
+            hier_geo[:area] ||= tgn_term
           else
-            non_hier_geo = tgn_term
+            #Get the type...
+            aat_main_term_info = {}
+            label_remaining_check = false
+
+            aat_type_response = Typhoeus::Request.get("http://vocab.getty.edu/download/json", :params=>{:uri=>"http://vocab.getty.edu/aat/#{tgn_term_type}.json"})
+            JSON.parse(aat_type_response.body)['results']['bindings'].each do |ntriple|
+              case ntriple['Predicate']['value']
+                when 'http://www.w3.org/2004/02/skos/core#prefLabel'
+                  if ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'en'
+                    aat_main_term_info[:label_en] = ntriple['Object']['value']
+                  elsif  ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'zh-latn-pinyin'
+                    aat_main_term_info[:label_other] = ntriple['Object']['value']
+                  elsif ntriple['Object']['xml:lang'].blank?
+                    aat_main_term_info[:label_default] = ntriple['Object']['value']
+                  else
+                    label_remaining_check = true if aat_main_term_info[:label_remaining].present?
+                    aat_main_term_info[:label_remaining] = ntriple['Object']['value']
+                  end
+                when 'http://www.w3.org/2004/02/skos/core#altLabel'
+                  if ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'en'
+                    aat_main_term_info[:label_alt] = ntriple['Object']['value']
+                  end
+              end
+
+            end
+            #Default term to best label language...
+            aat_term = aat_main_term_info[:label_en]
+            aat_term ||= aat_main_term_info[:label_default]
+            aat_term ||= aat_main_term_info[:label_other]
+            aat_term ||= aat_main_term_info[:label_alt]
+
+            if aat_term.blank?
+              if label_remaining_check
+                raise "Could not determine a single aat non_hier_geo label for TGN: " + tgn_id
+              else
+                aat_term = aat_main_term_info[:label_remaining]
+              end
+            end
+
+            aat_term = aat_term.gsub(/s$/, '')
+            non_hier_geo = "#{tgn_term} (#{aat_term})"
         end
 
         #Broader places
