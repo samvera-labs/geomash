@@ -327,7 +327,7 @@ EXAMPLE SPARQL:
             hier_geo[:territory] = tgn_term
           when '300000771' #county
             hier_geo[:county] = tgn_term
-          when '300008347' #inhabited place
+          when '300008347', '300387068' #inhabited place, independent cities
             hier_geo[:city] = tgn_term
           when '300000745' #neighborhood
             hier_geo[:city_section] = tgn_term
