@@ -347,6 +347,8 @@ EXAMPLE SPARQL:
                 case ntriple['Predicate']['value']
                   when 'http://www.w3.org/2004/02/skos/core#prefLabel'
                     if ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'en'
+                      aat_main_term_info[:label_en] ||= ntriple['Object']['value']
+                    elsif ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'en-us'
                       aat_main_term_info[:label_en] = ntriple['Object']['value']
                     elsif  ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'zh-latn-pinyin'
                       aat_main_term_info[:label_other] = ntriple['Object']['value']
@@ -377,8 +379,12 @@ EXAMPLE SPARQL:
                 end
               end
 
+              #Fix cases like http://vocab.getty.edu/aat/300132316 which are bays (bodies of water)
+              aat_term = aat_term.gsub(/ \(.+\)$/, '')
               aat_term = aat_term.gsub(/s$/, '')
-              non_hier_geo = "#{tgn_term} (#{aat_term})"
+
+              #Fix cases like "Boston Harbor" as "Boston Harbor (harbor)" isn't that helpful
+              non_hier_geo = tgn_term.downcase.include?(aat_term.downcase) ? tgn_term : "#{tgn_term} (#{aat_term})"
             else
               non_hier_geo = tgn_term
             end
