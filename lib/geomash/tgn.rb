@@ -311,34 +311,34 @@ EXAMPLE SPARQL:
       if tgn_term.present? && tgn_term_type.present?
         case tgn_term_type
           when '300128176' #continent
-            hier_geo[:continent] ||= tgn_term
-          when '300128207' #nations
-            hier_geo[:country] ||= tgn_term
+            hier_geo[:continent] = tgn_term
+          when '300128207', '300387130', '300387506' #nation, autonomous areas, countries
+            hier_geo[:country] = tgn_term
           when '300000774' #province
-            hier_geo[:province] ||= tgn_term
-          when '300236112', '300182722', '300387194', '300387052' #region, union, semi-independent political entity
-            hier_geo[:region] ||= tgn_term
+            hier_geo[:province] = tgn_term
+          when '300236112', '300182722', '300387194', '300387052', '300387113', '300387107' #region, union, semi-independent political entity, autonomous communities, autonomous regions
+            hier_geo[:region] = tgn_term
           when '300000776', '300000772', '300235093' #state, department, governorate
-            hier_geo[:state] ||= tgn_term
+            hier_geo[:state] = tgn_term
           when '300387081' #national district
             if tgn_term == 'District of Columbia'
-              hier_geo[:state] ||= tgn_term
+              hier_geo[:state] = tgn_term
             else
-              hier_geo[:territory] ||= tgn_term
+              hier_geo[:territory] = tgn_term
             end
           when '300135982', '300387176', '300387122' #territory, dependent state, union territory
-            hier_geo[:territory] ||= tgn_term
-          when '300000771' #county
-            hier_geo[:county] ||= tgn_term
-          when '300008347', '300387068' #inhabited place, independent cities
-            hier_geo[:city] ||= tgn_term
-          when '300000745' #neighborhood
-            hier_geo[:city_section] ||= tgn_term
+            hier_geo[:territory] = tgn_term
+          when '300000771', '300387092', '300387071' #county, parishes, unitary authorities
+            hier_geo[:county] = tgn_term
+          when '300008347', '300008389' #inhabited place, cities
+            hier_geo[:city] = tgn_term
+          when '300000745', '300000778', '300387331' #neighborhood, parishes, parts of inhabited places
+            hier_geo[:city_section] = tgn_term
           when '300008791', '300387062' #island
-            hier_geo[:island] ||= tgn_term
-          when '300387575', '300387346', '300167671', '300387178', '300387082' #'81101/area', '22101/general region', '83210/deserted settlement', '81501/historical region', '81126/national division'
-            hier_geo[:area] ||= tgn_term
-          when '300386699' #Top level element of Worlsd
+            hier_geo[:island] = tgn_term
+          when '300387575', '300387346', '300167671', '300387178', '300387082', '300387173', '300055621', '300386853', '300386831', '300386832', '300008178', '300008804', '300387131', '300132348', '300387085', '300387198', '300008761'   #'81101/area', '22101/general region', '83210/deserted settlement', '81501/historical region', '81126/national division', administrative divisions, area (measurement), island groups, mountain ranges, mountain systems, nature reserves, peninsulas, regional divisions, sand bars, senatorial districts (administrative districts), third level subdivisions (political entities), valleys (landforms)
+            hier_geo[:area] = tgn_term
+          when '300386699' #Top level element of World
             non_hier_geo[:value] = 'World'
             non_hier_geo[:qualifier] = nil
           else
