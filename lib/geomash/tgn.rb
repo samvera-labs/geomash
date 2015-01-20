@@ -290,6 +290,8 @@ EXAMPLE SPARQL:
       end
 
       hier_geo = {}
+      non_hier_geo = {}
+
       #Default term to best label language...
       tgn_term = tgn_main_term_info[:label_en]
       tgn_term ||= tgn_main_term_info[:label_default]
@@ -336,59 +338,64 @@ EXAMPLE SPARQL:
             hier_geo[:island] ||= tgn_term
           when '300387575', '300387346', '300167671', '300387178', '300387082' #'81101/area', '22101/general region', '83210/deserted settlement', '81501/historical region', '81126/national division'
             hier_geo[:area] ||= tgn_term
+          when '300386699' #Top level element of Worlsd
+            non_hier_geo[:value] = 'World'
+            non_hier_geo[:qualifier] = nil
           else
-            #Get the type... excluding top level elements (like World)
-            if tgn_term_type != '300386699'
-              aat_main_term_info = {}
-              label_remaining_check = false
+            aat_main_term_info = {}
+            label_remaining_check = false
 
-              aat_type_response = Typhoeus::Request.get("http://vocab.getty.edu/download/json", :params=>{:uri=>"http://vocab.getty.edu/aat/#{tgn_term_type}.json"})
-              JSON.parse(aat_type_response.body)['results']['bindings'].each do |ntriple|
-                case ntriple['Predicate']['value']
-                  when 'http://www.w3.org/2004/02/skos/core#prefLabel'
-                    if ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'en'
-                      aat_main_term_info[:label_en] ||= ntriple['Object']['value']
-                    elsif ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'en-us'
-                      aat_main_term_info[:label_en] = ntriple['Object']['value']
-                    elsif  ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'zh-latn-pinyin'
-                      aat_main_term_info[:label_other] = ntriple['Object']['value']
-                    elsif ntriple['Object']['xml:lang'].blank?
-                      aat_main_term_info[:label_default] = ntriple['Object']['value']
-                    else
-                      label_remaining_check = true if aat_main_term_info[:label_remaining].present?
-                      aat_main_term_info[:label_remaining] = ntriple['Object']['value']
-                    end
-                  when 'http://www.w3.org/2004/02/skos/core#altLabel'
-                    if ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'en'
-                      aat_main_term_info[:label_alt] = ntriple['Object']['value']
-                    end
-                end
-
-              end
-              #Default term to best label language...
-              aat_term = aat_main_term_info[:label_en]
-              aat_term ||= aat_main_term_info[:label_default]
-              aat_term ||= aat_main_term_info[:label_other]
-              aat_term ||= aat_main_term_info[:label_alt]
-
-              if aat_term.blank?
-                if label_remaining_check
-                  raise "Could not determine a single aat non_hier_geo label for TGN: " + tgn_id
-                else
-                  aat_term = aat_main_term_info[:label_remaining]
-                end
+            aat_type_response = Typhoeus::Request.get("http://vocab.getty.edu/download/json", :params=>{:uri=>"http://vocab.getty.edu/aat/#{tgn_term_type}.json"})
+            JSON.parse(aat_type_response.body)['results']['bindings'].each do |ntriple|
+              case ntriple['Predicate']['value']
+                when 'http://www.w3.org/2004/02/skos/core#prefLabel'
+                  if ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'en'
+                    aat_main_term_info[:label_en] ||= ntriple['Object']['value']
+                  elsif ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'en-us'
+                    aat_main_term_info[:label_en] = ntriple['Object']['value']
+                  elsif  ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'zh-latn-pinyin'
+                    aat_main_term_info[:label_other] = ntriple['Object']['value']
+                  elsif ntriple['Object']['xml:lang'].blank?
+                    aat_main_term_info[:label_default] = ntriple['Object']['value']
+                  else
+                    label_remaining_check = true if aat_main_term_info[:label_remaining].present?
+                    aat_main_term_info[:label_remaining] = ntriple['Object']['value']
+                  end
+                when 'http://www.w3.org/2004/02/skos/core#altLabel'
+                  if ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'en'
+                    aat_main_term_info[:label_alt] = ntriple['Object']['value']
+                  end
               end
 
-              #Fix cases like http://vocab.getty.edu/aat/300132316 which are bays (bodies of water)
-              aat_term = aat_term.gsub(/ \(.+\)$/, '')
-              aat_term = aat_term.gsub(/s$/, '')
+            end
+            #Default term to best label language...
+            aat_term = aat_main_term_info[:label_en]
+            aat_term ||= aat_main_term_info[:label_default]
+            aat_term ||= aat_main_term_info[:label_other]
+            aat_term ||= aat_main_term_info[:label_alt]
 
-              #Fix cases like "Boston Harbor" as "Boston Harbor (harbor)" isn't that helpful
-              non_hier_geo = tgn_term.downcase.include?(aat_term.downcase) ? tgn_term : "#{tgn_term} (#{aat_term})"
-            else
-              non_hier_geo = tgn_term
+            if aat_term.blank?
+              if label_remaining_check
+                raise "Could not determine a single aat non_hier_geo label for TGN: " + tgn_id
+              else
+                aat_term = aat_main_term_info[:label_remaining]
+              end
             end
 
+            #Fix cases like http://vocab.getty.edu/aat/300132316 which are bays (bodies of water)
+            aat_term = aat_term.gsub(/ \(.+\)$/, '')
+
+            if (aat_term =~ /ies$/).present?
+              aat_term = aat_term.gsub(/ies$/, 'y')
+            elsif (aat_term =~ /es$/).present?
+              aat_term = aat_term.gsub(/es$/, '')
+            elsif (aat_term =~ /s$/).present?
+              aat_term = aat_term.gsub(/s$/, '')
+            end
+
+            #Fix cases like "Boston Harbor" as "Boston Harbor (harbor)" isn't that helpful
+            non_hier_geo[:value] = tgn_term
+            non_hier_geo[:qualifier] = tgn_term.downcase.include?(aat_term.downcase) ? nil : aat_term
         end
 
         #Broader places
@@ -443,11 +450,11 @@ EXAMPLE SPARQL:
             case tgn_term_type
               when '300128176' #continent
                 hier_geo[:continent] = tgn_term
-              when '300128207' #nation
+              when '300128207', '300387130', '300387506' #nation, autonomous areas, countries
                 hier_geo[:country] = tgn_term
               when '300000774' #province
                 hier_geo[:province] = tgn_term
-              when '300236112', '300182722', '300387194', '300387052' #region, union, semi-independent political entity
+              when '300236112', '300182722', '300387194', '300387052', '300387113', '300387107' #region, union, semi-independent political entity, autonomous communities, autonomous regions
                 hier_geo[:region] = tgn_term
               when '300000776', '300000772', '300235093' #state, department, governorate
                 hier_geo[:state] = tgn_term
@@ -459,15 +466,15 @@ EXAMPLE SPARQL:
                 end
               when '300135982', '300387176', '300387122' #territory, dependent state, union territory
                 hier_geo[:territory] = tgn_term
-              when '300000771' #county
+              when '300000771', '300387092', '300387071' #county, parishes, unitary authorities
                 hier_geo[:county] = tgn_term
-              when '300008347' #inhabited place
+              when '300008347', '300008389' #inhabited place, cities
                 hier_geo[:city] = tgn_term
-              when '300000745' #neighborhood
+              when '300000745', '300000778', '300387331' #neighborhood, parishes, parts of inhabited places
                 hier_geo[:city_section] = tgn_term
               when '300008791', '300387062' #island
                 hier_geo[:island] = tgn_term
-              when '300387575', '300387346', '300167671', '300387178', '300387082' #'81101/area', '22101/general region', '83210/deserted settlement', '81501/historical region', '81126/national division'
+              when '300387575', '300387346', '300167671', '300387178', '300387082', '300387173', '300055621', '300386853', '300386831', '300386832', '300008178', '300008804', '300387131', '300132348', '300387085', '300387198', '300008761'   #'81101/area', '22101/general region', '83210/deserted settlement', '81501/historical region', '81126/national division', administrative divisions, area (measurement), island groups, mountain ranges, mountain systems, nature reserves, peninsulas, regional divisions, sand bars, senatorial districts (administrative districts), third level subdivisions (political entities), valleys (landforms)
                 hier_geo[:area] = tgn_term
             end
           end
@@ -476,7 +483,7 @@ EXAMPLE SPARQL:
         tgn_data = {}
         tgn_data[:coords] = coords
         tgn_data[:hier_geo] = hier_geo.length > 0 ? hier_geo : nil
-        tgn_data[:non_hier_geo] = non_hier_geo ? non_hier_geo : nil
+        tgn_data[:non_hier_geo] = non_hier_geo.present? ? non_hier_geo : nil
 
       else
 
