@@ -248,32 +248,28 @@ EXAMPLE SPARQL:
         as_json_tgn_response = JSON.parse(primary_tgn_response.body)
       end
 
-      #FIXME: Temporary hack to determine more cases of non-blank/english place name conflicts that require resolution.
-      label_remaining_check = false
-
       as_json_tgn_response['results']['bindings'].each do |ntriple|
         case ntriple['Predicate']['value']
           when 'http://www.w3.org/2004/02/skos/core#prefLabel'
             if ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'en'
-              tgn_main_term_info[:label_en] = ntriple['Object']['value']
+              tgn_main_term_info[:label_en] ||= ntriple['Object']['value']
             elsif  ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'zh-latn-pinyin'
-              tgn_main_term_info[:label_other] = ntriple['Object']['value']
+              tgn_main_term_info[:label_other] ||= ntriple['Object']['value']
             elsif ntriple['Object']['xml:lang'].blank?
-              tgn_main_term_info[:label_default] = ntriple['Object']['value']
+              tgn_main_term_info[:label_default] ||= ntriple['Object']['value']
             else
-              label_remaining_check = true if tgn_main_term_info[:label_remaining].present?
-              tgn_main_term_info[:label_remaining] = ntriple['Object']['value']
+              tgn_main_term_info[:label_remaining] ||= ntriple['Object']['value']
             end
           when 'http://www.w3.org/2004/02/skos/core#altLabel'
             if ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'en'
-              tgn_main_term_info[:label_alt] = ntriple['Object']['value']
+              tgn_main_term_info[:label_alt] ||= ntriple['Object']['value']
             end
           when 'http://vocab.getty.edu/ontology#placeTypePreferred'
-            tgn_main_term_info[:aat_place] = ntriple['Object']['value']
+            tgn_main_term_info[:aat_place] ||= ntriple['Object']['value']
           when 'http://schema.org/latitude'
-            tgn_main_term_info[:latitude] = ntriple['Object']['value']
+            tgn_main_term_info[:latitude] ||= ntriple['Object']['value']
           when 'http://schema.org/longitude'
-            tgn_main_term_info[:longitude] = ntriple['Object']['value']
+            tgn_main_term_info[:longitude] ||= ntriple['Object']['value']
           when 'http://vocab.getty.edu/ontology#broaderPreferredExtended'
             broader_place_type_list << ntriple['Object']['value']
         end
@@ -297,13 +293,7 @@ EXAMPLE SPARQL:
       tgn_term ||= tgn_main_term_info[:label_default]
       tgn_term ||= tgn_main_term_info[:label_other]
       tgn_term ||= tgn_main_term_info[:label_alt]
-      if tgn_term.blank?
-        if label_remaining_check
-          raise "Could not determine a single label for TGN: " + tgn_id
-        else
-          tgn_term = tgn_main_term_info[:label_remaining]
-        end
-      end
+      tgn_term ||= tgn_main_term_info[:label_remaining]
 
       tgn_term_type = tgn_main_term_info[:aat_place].split('/').last
 
@@ -352,18 +342,18 @@ EXAMPLE SPARQL:
                   if ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'en'
                     aat_main_term_info[:label_en] ||= ntriple['Object']['value']
                   elsif ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'en-us'
-                    aat_main_term_info[:label_en] = ntriple['Object']['value']
+                    aat_main_term_info[:label_en] ||= ntriple['Object']['value']
                   elsif  ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'zh-latn-pinyin'
-                    aat_main_term_info[:label_other] = ntriple['Object']['value']
+                    aat_main_term_info[:label_other] ||= ntriple['Object']['value']
                   elsif ntriple['Object']['xml:lang'].blank?
-                    aat_main_term_info[:label_default] = ntriple['Object']['value']
+                    aat_main_term_info[:label_default] ||= ntriple['Object']['value']
                   else
                     label_remaining_check = true if aat_main_term_info[:label_remaining].present?
-                    aat_main_term_info[:label_remaining] = ntriple['Object']['value']
+                    aat_main_term_info[:label_remaining] ||= ntriple['Object']['value']
                   end
                 when 'http://www.w3.org/2004/02/skos/core#altLabel'
                   if ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'en'
-                    aat_main_term_info[:label_alt] = ntriple['Object']['value']
+                    aat_main_term_info[:label_alt] ||= ntriple['Object']['value']
                   end
               end
 
