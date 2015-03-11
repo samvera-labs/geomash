@@ -190,7 +190,7 @@ EXAMPLE SPARQL:
       tgn_main_term_info = {}
       broader_place_type_list = []
 
-      primary_tgn_response = Typhoeus::Request.get("http://vocab.getty.edu/download/json", :params=>{:uri=>"http://vocab.getty.edu/tgn/#{tgn_id}.json"})
+      primary_tgn_response = Typhoeus::Request.get("http://vocab.getty.edu/download/json", :params=>{:uri=>"http://vocab.getty.edu/tgn/#{tgn_id}.json"}, :timeout=>500)
 
       return nil if(primary_tgn_response.response_code == 404) #Couldn't find TGN... FIXME: additional check needed if TGN is down?
 
@@ -244,7 +244,7 @@ EXAMPLE SPARQL:
 
         query = query.squish
 
-        primary_tgn_response = Typhoeus::Request.post("http://vocab.getty.edu/sparql.json", :body=>{:query=>query})
+        primary_tgn_response = Typhoeus::Request.get("http://vocab.getty.edu/sparql.json", :body=>{:query=>query}, :timeout=>500)
         as_json_tgn_response = JSON.parse(primary_tgn_response.body)
       end
 
@@ -335,7 +335,7 @@ EXAMPLE SPARQL:
             aat_main_term_info = {}
             label_remaining_check = false
 
-            aat_type_response = Typhoeus::Request.get("http://vocab.getty.edu/download/json", :params=>{:uri=>"http://vocab.getty.edu/aat/#{tgn_term_type}.json"})
+            aat_type_response = Typhoeus::Request.get("http://vocab.getty.edu/download/json", :params=>{:uri=>"http://vocab.getty.edu/aat/#{tgn_term_type}.json"}, :timeout=>500)
             JSON.parse(aat_type_response.body)['results']['bindings'].each do |ntriple|
               case ntriple['Predicate']['value']
                 when 'http://www.w3.org/2004/02/skos/core#prefLabel'
@@ -419,7 +419,7 @@ EXAMPLE SPARQL:
           query += ". } GROUP BY ?identifier_place ?place_label_default ?place_label_en ?place_label_latn_pinyin ?place_label_alt ?place_label_remaining ?aat_pref"
           query = query.squish
 
-          tgn_response_for_aat = Typhoeus::Request.post("http://vocab.getty.edu/sparql.json", :body=>{:query=>query})
+          tgn_response_for_aat = Typhoeus::Request.post("http://vocab.getty.edu/sparql.json", :body=>{:query=>query}, :timeout=>500)
           as_json_tgn_response_for_aat = JSON.parse(tgn_response_for_aat.body)
 
           as_json_tgn_response_for_aat["results"]["bindings"].each do |aat_response|
@@ -485,17 +485,19 @@ EXAMPLE SPARQL:
 
     end
 
-
     def self.tgn_id_from_geo_hash(geo_hash)
       return nil if Geomash::TGN.tgn_enabled != true
 
       geo_hash = geo_hash.clone
-
       max_retry = 3
       sleep_time = 60 # In seconds
       retry_count = 0
 
       return_hash = {}
+      country_response = {}
+      states_response = {}
+      cities_response = {}
+      neighboorhood_response = {}
 
       state_part = geo_hash[:state_part]
 
@@ -511,34 +513,64 @@ EXAMPLE SPARQL:
 
       neighborhood_part = geo_hash[:neighborhood_part]
 
+      web_request_error = false
+      begin
+        if retry_count > 0
+          sleep(sleep_time)
+        end
+        retry_count = retry_count + 1
 
+        #First we get county!!
 
-      if city_part.blank? && state_part.blank?
-        # Limit to nations
         query = %{SELECT ?object_identifier
 WHERE
 {
   ?x <http://purl.org/dc/elements/1.1/identifier> ?object_identifier .
   ?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300128207> .
-  ?x <http://www.w3.org/2004/02/skos/core#prefLabel> ?object_label .
+  ?x <http://www.w3.org/2000/01/rdf-schema#label> ?object_label .
   FILTER regex(?object_label, "^#{country_part}$", "i" )
-}}
-      elsif state_part.present? && city_part.blank? && country_code == 7012149
-        #Limit to states
-        query = %{SELECT ?object_identifier
+}
+  GROUP BY ?object_identifier
+}
+        country_response = self.tgn_sparql_request(query)
+        return nil if country_response[:id].blank? && !country_response[:errors]
+        return_hash[:id] = country_response[:id]
+        return_hash[:rdf] = country_response[:rdf]
+        return_hash[:parse_depth] = 1
+        web_request_error = true if country_response[:errors]
+
+        #United State state query
+        if state_part.present? && country_code == 7012149 && !web_request_error
+          query = %{SELECT ?object_identifier
 WHERE
 {
   ?x <http://purl.org/dc/elements/1.1/identifier> ?object_identifier .
-  ?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000776> .
+  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000776>} UNION
+  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387081>} .
   ?x <http://www.w3.org/2000/01/rdf-schema#label> ?object_label .
   FILTER regex(?object_label, "^#{state_part}$", "i" )
 
   ?x <http://vocab.getty.edu/ontology#broaderPreferredExtended> <http://vocab.getty.edu/tgn/7012149> .
-}}
-      elsif state_part.present? && city_part.blank?
-       #Limit to regions
+}
+  GROUP BY ?object_identifier
+}
 
-        query = %{SELECT ?object_identifier
+          states_response = self.tgn_sparql_request(query)
+          if states_response[:id].blank? && !states_response[:errors]
+            return_hash[:original_string_differs] = true
+          else
+            return_hash[:id] = states_response[:id]
+            return_hash[:rdf] = states_response[:rdf]
+            return_hash[:parse_depth] = 2
+          end
+          web_request_error = true if states_response[:errors]
+        end
+
+        #Non United States state query
+        #Note: Had to remove   {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300008347>} UNION as it returned two results
+        #for "15. Bezirk (Rudolfsheim-Fünfhaus, Vienna, Austria)--Exhibitions". Correct or not?
+        if state_part.present? && country_code != 7012149 && !web_request_error
+          query = %{SELECT ?object_identifier
 WHERE
 {
   ?x <http://purl.org/dc/elements/1.1/identifier> ?object_identifier .
@@ -550,75 +582,51 @@ WHERE
   {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387122>} UNION
   {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000776>} UNION
   {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300236112>} UNION
-  {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300008347>} UNION
   {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387081>} .
   ?x <http://www.w3.org/2000/01/rdf-schema#label> ?object_label .
   FILTER regex(?object_label, "^#{state_part}$", "i" )
-  ?x <http://vocab.getty.edu/ontology#broaderPreferredExtended> ?parent_country .
-  {
-    SELECT ?parent_country ?identifier_country
-    WHERE {
-       ?parent_country <http://purl.org/dc/elements/1.1/identifier> ?identifier_country .
-       ?parent_country <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300128207> .
-       ?parent_country <http://www.w3.org/2000/01/rdf-schema#label> ?country_label .
-       FILTER regex(?country_label, "^#{country_part}$", "i" )
-    }
-
-  }
+  ?x <http://vocab.getty.edu/ontology#broaderPreferredExtended> <http://vocab.getty.edu/tgn/#{country_response[:id]}> .
 }
 GROUP BY ?object_identifier
 }
 
-        #FIXME Temporary: For Geomash.parse('Aknīste (Latvia)', true), seems to be a neighborhood placed in state
-        # {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300008347>} UNION
-      elsif state_part.present? && city_part.present? && neighborhood_part.blank?
-        #Limited to only inhabited places at the moment...
-        query = %{SELECT ?object_identifier
+          states_response = self.tgn_sparql_request(query)
+          if states_response[:id].blank? && !states_response[:errors]
+            return_hash[:original_string_differs] = true
+          else
+            return_hash[:id] = states_response[:id]
+            return_hash[:rdf] = states_response[:rdf]
+            return_hash[:parse_depth] = 2
+          end
+          web_request_error = true if states_response[:errors]
+        end
+
+        if states_response[:id].present? && city_part.present? && !web_request_error
+          query = %{SELECT ?object_identifier
 WHERE
 {
   ?x <http://purl.org/dc/elements/1.1/identifier> ?object_identifier .
   ?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300008347> .
   ?x <http://www.w3.org/2000/01/rdf-schema#label> ?object_label .
   FILTER regex(?object_label, "^#{city_part}$", "i" )
-  ?x <http://vocab.getty.edu/ontology#broaderPreferredExtended> ?parent_country .
-  {
-    SELECT ?parent_country ?identifier_country
-    WHERE {
-       ?parent_country <http://purl.org/dc/elements/1.1/identifier> ?identifier_country .
-       ?parent_country <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300128207> .
-       ?parent_country <http://www.w3.org/2000/01/rdf-schema#label> ?country_label .
-       FILTER regex(?country_label, "^#{country_part}$", "i" )
-    }
-
-  }
-  ?x <http://vocab.getty.edu/ontology#broaderPreferredExtended> ?parent_state .
-  {
-    SELECT ?parent_state ?identifier_state
-    WHERE {
-       ?parent_state <http://purl.org/dc/elements/1.1/identifier> ?identifier_state .
-       {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000774>} UNION
-       {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000772>} UNION
-       {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300235093>} UNION
-       {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300135982>} UNION
-       {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387176>} UNION
-       {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387122>} UNION
-       {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000776>} UNION
-       {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300236112>} UNION
-       {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300008347>} UNION
-       {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387081>} .
-       ?parent_state <http://www.w3.org/2000/01/rdf-schema#label> ?state_label .
-       FILTER regex(?state_label, "^#{state_part}$", "i" )
-    }
-
-  }
-
+  ?x <http://vocab.getty.edu/ontology#broaderPreferredExtended> <http://vocab.getty.edu/tgn/#{country_response[:id]}> .
+  ?x <http://vocab.getty.edu/ontology#broaderPreferredExtended> <http://vocab.getty.edu/tgn/#{states_response[:id]}> .
 }
 GROUP BY ?object_identifier
 }
+          cities_response = self.tgn_sparql_request(query)
+          if cities_response[:id].blank? && !cities_response[:errors]
+            return_hash[:original_string_differs] = true
+          else
+            return_hash[:id] = cities_response[:id]
+            return_hash[:rdf] = cities_response[:rdf]
+            return_hash[:parse_depth] = 3
+          end
+          web_request_error = true if cities_response[:errors]
 
+        end
 
-      elsif state_part.present? && city_part.present? && neighborhood_part.present?
-        #Limited to only to neighborhoods currently...
+      if cities_response[:id].present? && neighborhood_part.present? && !web_request_error
         query = %{SELECT ?object_identifier
 WHERE
 {
@@ -626,97 +634,61 @@ WHERE
   ?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000745> .
   ?x <http://www.w3.org/2000/01/rdf-schema#label> ?object_label .
   FILTER regex(?object_label, "^#{neighborhood_part}$", "i" )
-  ?x <http://vocab.getty.edu/ontology#broaderPreferredExtended> ?parent_country .
-  {
-    SELECT ?parent_country ?identifier_country
-    WHERE {
-       ?parent_country <http://purl.org/dc/elements/1.1/identifier> ?identifier_country .
-       ?parent_country <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300128207> .
-       ?parent_country <http://www.w3.org/2000/01/rdf-schema#label> ?country_label .
-       FILTER regex(?country_label, "^#{country_part}$", "i" )
-    }
-
-  }
-  ?x <http://vocab.getty.edu/ontology#broaderPreferredExtended> ?parent_state .
-  {
-    SELECT ?parent_state ?identifier_state
-    WHERE {
-       ?parent_state <http://purl.org/dc/elements/1.1/identifier> ?identifier_state .
-       {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000774>} UNION
-       {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000772>} UNION
-       {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300235093>} UNION
-       {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300135982>} UNION
-       {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387176>} UNION
-       {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387122>} UNION
-       {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000776>} UNION
-       {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300236112>} UNION
-       {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300008347>} UNION
-       {?parent_state <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387081>} .
-       ?parent_state <http://www.w3.org/2000/01/rdf-schema#label> ?state_label .
-       FILTER regex(?state_label, "^#{state_part}$", "i" )
-    }
-
-  }
-
-  ?x <http://vocab.getty.edu/ontology#broaderPreferredExtended> ?parent_city .
-  {
-    SELECT ?parent_city ?identifier_city
-    WHERE {
-       ?parent_city <http://purl.org/dc/elements/1.1/identifier> ?identifier_city .
-       ?parent_city <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300008347> .
-       ?parent_city <http://www.w3.org/2000/01/rdf-schema#label> ?city_label .
-       FILTER regex(?city_label, "^#{city_part}$", "i" )
-    }
-
-  }
-
+  ?x <http://vocab.getty.edu/ontology#broaderPreferredExtended> <http://vocab.getty.edu/tgn/#{country_response[:id]}> .
+  ?x <http://vocab.getty.edu/ontology#broaderPreferredExtended> <http://vocab.getty.edu/tgn/#{states_response[:id]}> .
+  ?x <http://vocab.getty.edu/ontology#broaderPreferredExtended> <http://vocab.getty.edu/tgn/#{cities_response[:id]}> .
 }
 GROUP BY ?object_identifier
 }
-
-
-      else
-        return nil
-      end
-
-      begin
-
-        if retry_count > 0
-          sleep(sleep_time)
-        end
-        retry_count = retry_count + 1
-
-      query = query.squish
-       tgn_response = Typhoeus::Request.get("http://vocab.getty.edu/sparql.json", :params=>{:query=>query})
-
-      end until (tgn_response.code != 500 || retry_count == max_retry)
-
-
-
-
-      unless tgn_response.code == 500
-        as_json = JSON.parse(tgn_response.body)
-
-        #This is ugly and needs to be redone to achieve better recursive...
-        if as_json["results"]["bindings"].present? && as_json["results"]["bindings"].first["object_identifier"].present?
-          return_hash[:id] = as_json["results"]["bindings"].first["object_identifier"]["value"]
-          return_hash[:rdf] = "http://vocab.getty.edu/tgn/#{return_hash[:id]}.rdf"
+        neighborhood_response = self.tgn_sparql_request(query)
+        if neighborhood_response[:id].blank? && !neighborhood_response[:errors]
+          return_hash[:original_string_differs]=true
         else
-          return nil
+          return_hash[:id] = neighborhood_response[:id]
+          return_hash[:rdf] = neighborhood_response[:rdf]
+          return_hash[:parse_depth] = 4
         end
+        web_request_error = true if neighborhood_response[:errors]
       end
 
-      if tgn_response.code == 500
-        raise 'TGN Server appears to not be responding for Geographic query: ' + query
-      end
+      end until (!web_request_error || retry_count == max_retry)
 
       if return_hash.present?
-        return_hash[:original_string_differs] = Geomash::Standardizer.parsed_and_original_check(geo_hash)
+        return_hash[:original_string_differs] ||= Geomash::Standardizer.parsed_and_original_check(geo_hash)
         return return_hash
       else
         return nil
       end
+
     end
+
+      def self.tgn_sparql_request(query,method="GET")
+        response = {}
+        query = query.squish
+        if(method=="GET")
+          tgn_response = Typhoeus::Request.get("http://vocab.getty.edu/sparql.json", :params=>{:query=>query}, :timeout=>500)
+        else
+          tgn_response = Typhoeus::Request.post("http://vocab.getty.edu/sparql.json", :params=>{:query=>query}, :timeout=>500)
+        end
+
+        if tgn_response.success? && tgn_response.code == 200
+          begin
+            as_json = JSON.parse(tgn_response.body)
+            response[:json] = as_json
+            if as_json["results"]["bindings"].present? && as_json["results"]["bindings"].first["object_identifier"].present?
+              response[:id] = as_json["results"]["bindings"].first["object_identifier"]["value"]
+              response[:rdf] = "http://vocab.getty.edu/tgn/#{response[:id]}.rdf"
+            end
+            response[:errors] = false
+          rescue JSON::ParserError
+            response[:json] = nil
+            response[:errors] = true
+          end
+        end
+
+        return response
+
+      end
 
 
   end

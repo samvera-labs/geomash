@@ -80,7 +80,10 @@ module Geomash
         'Pictorial works.',
         /[nN]ation/,
         'Asia',
-        '(Republic)'
+        '(Republic)',
+        'Directories',
+        #Some date removal
+        /[\d]+th [cC]entury,/
     ]
 
 

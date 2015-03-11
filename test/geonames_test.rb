@@ -11,7 +11,7 @@ class GeonamesTest < ActiveSupport::TestCase
       assert_equal '-84.18404', result[:coords][:box][:west]
       assert_equal '45.01697', result[:coords][:box][:north]
       assert_equal '-84.11884', result[:coords][:box][:east]
-      assert_equal '44.98859', result[:coords][:box][:south]
+      assert_equal '44.9886', result[:coords][:box][:south]
       assert_equal 'Atlanta', result[:hier_geo][:ppla2]
       assert_equal 'Montmorency County', result[:hier_geo][:adm2]
       assert_equal 'Michigan', result[:hier_geo][:adm1]

@@ -16,7 +16,7 @@ class GeomashTest < ActiveSupport::TestCase
     assert_equal 'France', result[:country_part]
     assert_equal nil, result[:street_part]
     assert_equal '7010587', result[:tgn][:id] if Geomash::TGN.tgn_enabled == true
-    assert_equal true, result[:tgn][:original_string_differs] if Geomash::TGN.tgn_enabled == true
+    assert_equal false, result[:tgn][:original_string_differs] if Geomash::TGN.tgn_enabled == true
     assert_equal '2987374', result[:geonames][:id] if Geomash::Geonames.geonames_username != '<username>'
     assert_equal true, result[:geonames][:original_string_differs] if Geomash::Geonames.geonames_username != '<username>'
 
@@ -42,6 +42,29 @@ class GeomashTest < ActiveSupport::TestCase
     assert_equal true, result[:tgn][:original_string_differs] if Geomash::TGN.tgn_enabled == true
     assert_equal '2953481', result[:geonames][:id] if Geomash::Geonames.geonames_username != '<username>'
     assert_equal true, result[:geonames][:original_string_differs] if Geomash::Geonames.geonames_username != '<username>'
+
+    result = Geomash.parse('Naroden Etnografski Muzeĭ (Sofia, Bulgaria)--Catalogs', true)
+    assert_equal 'Sofia', result[:city_part]
+    assert_equal 'Sofia', result[:state_part]
+    assert_equal 'Bulgaria', result[:country_part]
+    assert_equal nil, result[:neighborhood_part]
+    assert_equal nil, result[:street_part]
+    assert_equal '7009977', result[:tgn][:id] if Geomash::TGN.tgn_enabled == true
+    assert_equal true, result[:tgn][:original_string_differs] if Geomash::TGN.tgn_enabled == true
+    assert_equal '727011', result[:geonames][:id] if Geomash::Geonames.geonames_username != '<username>'
+    assert_equal true, result[:geonames][:original_string_differs] if Geomash::Geonames.geonames_username != '<username>'
+
+    result = Geomash.parse('Lettering--United States--History--19th century', true)
+    assert_equal nil, result[:city_part]
+    assert_equal nil, result[:state_part]
+    assert_equal 'United States', result[:country_part]
+    assert_equal nil, result[:neighborhood_part]
+    assert_equal nil, result[:street_part]
+    assert_equal '7012149', result[:tgn][:id] if Geomash::TGN.tgn_enabled == true
+    assert_equal false, result[:tgn][:original_string_differs] if Geomash::TGN.tgn_enabled == true
+    assert_equal '6252001', result[:geonames][:id] if Geomash::Geonames.geonames_username != '<username>'
+    assert_equal false, result[:geonames][:original_string_differs] if Geomash::Geonames.geonames_username != '<username>'
+
 
   end
 

@@ -202,7 +202,7 @@ module Geomash
           elsif (result['types'] & ['country']).present?
             return_hash[:country_part] = result['long_name']
           elsif (result['types'] & ['administrative_area_level_1']).present?
-            return_hash[:state_part] = result['long_name'].to_ascii
+            return_hash[:state_part] = result['long_name'].to_ascii.gsub('-city', '')
           elsif (result['types'] & ['locality']).present?
             return_hash[:city_part] = result['long_name']
           elsif (result['types'] & ['sublocality', 'political']).length == 2 || result['types'].include?('neighborhood')

@@ -27,9 +27,26 @@ module Geomash
 
       #Parsing a subject geographic term.
       if term.include?('--')
+
         term.split('--').each_with_index do |split_term, index|
           if state_name_list.any? { |state| split_term.include? state } || country_name_list.any? { |country| split_term.include? country }
-            geo_term = term.split('--')[index..term.split('--').length-1].reverse!.join(',')
+            #Cases like Naroden Etnografski Muzeĭ (Sofia, Bulgaria)--Catalogs
+            if split_term.match(/\([^\)]+\)/)
+              geo_term = split_term.gsub('(', ',')
+              geo_term = geo_term.gsub(')', '')
+
+=begin
+            if split_term.match(/\([^\)]+,[^\)]+\)/)
+              geo_term = split_term.match(/\([^\)]+\)/).to_s
+              geo_term = geo_term[1..geo_term.length-2]
+            #Abbeville (France)--History--20th century.
+            elsif split_term.match(/\([^\)]+\)/)
+              geo_term = split_term
+=end
+            else
+              geo_term = term.split('--')[index..term.split('--').length-1].reverse!.join(',')
+            end
+
           elsif state_abbr_list.any? { |abbr| split_term.include? abbr }
             geo_term = split_term
           end
@@ -82,6 +99,8 @@ module Geomash
           return nil
         end
       end
+
+      geo_term = geo_term.squeeze(',')
 
       return geo_term
     end
@@ -224,6 +243,7 @@ module Geomash
 
     def self.try_with_entered_names(geo_hash)
       geo_hash_local = geo_hash.clone
+      geo_hash_local[:tgn] = nil
       if geo_hash_local[:neighborhood_part].present?
          orig_string_check = geo_hash_local[:standardized_term].gsub(',', ' ').squish.split(' ').select { |value| value.downcase.to_ascii == geo_hash_local[:neighborhood_part].downcase.to_ascii}
          geo_hash_local[:neighborhood_part] = orig_string_check.first.strip if orig_string_check.present? && orig_string_check != geo_hash_local[:neighborhood_part]
