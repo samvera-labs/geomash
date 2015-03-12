@@ -653,7 +653,7 @@ GROUP BY ?object_identifier
 
       end until (!web_request_error || retry_count == max_retry)
 
-      if return_hash.present?
+      if return_hash.present? && !web_request_error
         return_hash[:original_string_differs] ||= Geomash::Standardizer.parsed_and_original_check(geo_hash)
         return return_hash
       else
