@@ -683,6 +683,16 @@ GROUP BY ?object_identifier
           rescue JSON::ParserError
             response[:json] = nil
             response[:errors] = true
+            if tgn_response.cached? && Typhoeus::Config.cache.present?
+              cache_key = Typhoeus::Request.new("http://vocab.getty.edu/sparql.json", params: {query: query}).cache_key
+              Typhoeus::Config.cache.delete(cache_key) #Need to define a delete method like: def delete(request) Rails.cache.delete(request) end
+            end
+
+          end
+        else
+          if tgn_response.cached? && Typhoeus::Config.cache.present?
+            cache_key = Typhoeus::Request.new("http://vocab.getty.edu/sparql.json", params: {query: query}).cache_key
+            Typhoeus::Config.cache.delete(cache_key) #Need to define a delete method like: def delete(request) Rails.cache.delete(request) end
           end
         end
 
