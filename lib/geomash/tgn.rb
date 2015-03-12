@@ -506,7 +506,7 @@ EXAMPLE SPARQL:
 
 
       country_part = Geomash::Constants::COUNTRY_TGN_LOOKUP[geo_hash[:country_part]][:tgn_country_name] unless Geomash::Constants::COUNTRY_TGN_LOOKUP[geo_hash[:country_part]].blank?
-      country_part ||= geo_hash[:country_part]
+      country_part = geo_hash[:country_part] if country_part.blank?
       country_part ||= ''
 
       city_part = geo_hash[:city_part]

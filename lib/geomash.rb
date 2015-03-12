@@ -53,7 +53,7 @@ module Geomash
 
     if return_hash[:country_part].present?
       #FIXME
-      return_hash[:tgn] = Geomash::TGN.tgn_id_from_geo_hash(return_hash)
+geo
 
       if return_hash[:tgn].blank? || (return_hash[:tgn][:original_string_differs] && return_hash[:state_part].present?)
         geo_hash_temp =  Geomash::Standardizer.try_with_entered_names(return_hash)
