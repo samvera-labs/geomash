@@ -72,6 +72,7 @@ module Geomash
     }
 
     #Terms that drive geographic parsers mad...
+    #Possibly check using QA against LCSH Subject topics that aren't geographical...
     JUNK_TERMS = [
         'Cranberries',
         'History',
@@ -82,6 +83,7 @@ module Geomash
         'Asia',
         '(Republic)',
         'Directories',
+        'Biography',
         #Some date removal
         /[\d]+th [cC]entury,/
     ]
