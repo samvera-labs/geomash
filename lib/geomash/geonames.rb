@@ -104,7 +104,7 @@ module Geomash
         end
 
         #This is ugly and needs to be redone to achieve better recursive...
-        if parsed_xml.geonames.totalResultsCount.text == '0'
+        if parsed_xml.present? && parsed_xml.geonames.totalResultsCount.text == '0'
           if geo_hash[:neighborhood_part].present?
             geo_hash_temp = geo_hash.clone
             geo_hash_temp[:neighborhood_part] = nil
@@ -121,10 +121,10 @@ module Geomash
         end
 
         #Exact Match ... FIXME to not use Slop
-        if parsed_xml.geonames.geoname.class == Nokogiri::XML::Element
+        if parsed_xml.present? && parsed_xml.geonames.geoname.class == Nokogiri::XML::Element
           return_hash[:id] = parsed_xml.geonames.geoname.geonameId.text
           return_hash[:rdf] = "http://sws.geonames.org/#{return_hash[:id]}/about.rdf"
-        elsif parsed_xml.geonames.geoname.class ==Nokogiri::XML::NodeSet
+        elsif parsed_xml.present? && parsed_xml.geonames.geoname.class ==Nokogiri::XML::NodeSet
           return_hash[:id] = parsed_xml.geonames.geoname.first.geonameId.text
           return_hash[:rdf] = "http://sws.geonames.org/#{return_hash[:id]}/about.rdf"
         end
