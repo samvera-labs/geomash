@@ -213,6 +213,8 @@ module Geomash
         return_hash[:term_differs_from_tgn] ||= google_api_result.first.data['partial_match'] unless google_api_result.first.data['partial_match'].blank?
       end
 
+      #FIXME: Google free API rate limit is 5 requests / 1 second now (used to be 10). Need a better way to handle this.
+      sleep(0.1)
 
       return return_hash
     end
