@@ -95,16 +95,13 @@ module Geomash
 
       unless geonames_response.code == 500
 
-        parsed_xml = Nokogiri::Slop(geonames_response.body)
+        parsed_xml = Nokogiri::XML(geonames_response.body)
 
-        begin
-          raise "geonames status error message of: #{parsed_xml.to_s}" if parsed_xml.geonames.status
-        rescue
-          #Do nothing but FIXME to not use slop
-        end
+        raise "geonames status error message of: #{parsed_xml.to_s}" if parsed_xml.xpath("//status").present?
 
         #This is ugly and needs to be redone to achieve better recursive...
-        if parsed_xml.present? && parsed_xml.geonames.totalResultsCount.text == '0'
+        current_count = parsed_xml.xpath("//totalResultsCount")
+        if current_count.blank? || current_count.first.text == '0'
           if geo_hash[:neighborhood_part].present?
             geo_hash_temp = geo_hash.clone
             geo_hash_temp[:neighborhood_part] = nil
@@ -121,14 +118,14 @@ module Geomash
         end
 
         #Exact Match ... FIXME to not use Slop
-        if parsed_xml.present? && parsed_xml.geonames.geoname.class == Nokogiri::XML::Element
-          return_hash[:id] = parsed_xml.geonames.geoname.geonameId.text
+        if parsed_xml.xpath("//geonames/geoname/geonameId").present?
+          return_hash[:id] = parsed_xml.xpath("//geonames/geoname/geonameId").first.text
           return_hash[:rdf] = "http://sws.geonames.org/#{return_hash[:id]}/about.rdf"
-        elsif parsed_xml.present? && parsed_xml.geonames.geoname.class ==Nokogiri::XML::NodeSet
-          return_hash[:id] = parsed_xml.geonames.geoname.first.geonameId.text
-          return_hash[:rdf] = "http://sws.geonames.org/#{return_hash[:id]}/about.rdf"
+          return_hash[:original_string_differs] = Geomash::Standardizer.parsed_and_original_check(geo_hash)
+          return return_hash
+        else
+          return nil
         end
-        return_hash[:original_string_differs] = Geomash::Standardizer.parsed_and_original_check(geo_hash)
 
       end
 
