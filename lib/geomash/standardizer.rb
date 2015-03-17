@@ -11,6 +11,10 @@ module Geomash
         return ''
       end
 
+      term_split_list = term.split(/[,\-\(\(]/).reject{ |e| e.empty? }
+      term_split_list.each{ |e| e.gsub!(/[^\w\s]/, "") } #Remove punctuation
+      term_split_list.each{ |e| e.strip! } #Remove any extra remaining whitespace
+      term_split_list.reject{ |e| e.empty? }
       state_abbr_list = ['Mass']
       state_name_list = []
       country_name_list = []
@@ -26,14 +30,14 @@ module Geomash
       end
 
       #Parsing a subject geographic term.
-      if term.include?('--')
-
-        term.split('--').each_with_index do |split_term, index|
-          if state_name_list.any? { |state| split_term.include? state } || country_name_list.any? { |country| split_term.include? country }
-            #Cases like Naroden Etnografski Muzeĭ (Sofia, Bulgaria)--Catalogs
-            if split_term.match(/\([^\)]+\)/)
-              geo_term = split_term.gsub('(', ',')
-              geo_term = geo_term.gsub(')', '')
+      if (state_name_list & term_split_list).present? || (state_abbr_list & term_split_list).present? || (country_name_list & term_split_list).present?
+        if term.include?('--')
+          term.split('--').each_with_index do |split_term, index|
+            if state_name_list.any? { |state| split_term.include? state } || country_name_list.any? { |country| split_term.include? country }
+              #Cases like Naroden Etnografski Muzeĭ (Sofia, Bulgaria)--Catalogs
+              if split_term.match(/\([^\)]+\)/)
+                geo_term = split_term.gsub('(', ',').gsub(' ,', ', ')
+                geo_term = geo_term.gsub(')', '')
 
 =begin
             if split_term.match(/\([^\)]+,[^\)]+\)/)
@@ -43,26 +47,28 @@ module Geomash
             elsif split_term.match(/\([^\)]+\)/)
               geo_term = split_term
 =end
-            else
-              geo_term = term.split('--')[index..term.split('--').length-1].reverse!.join(',')
+              else
+                geo_term = term.split('--')[index..term.split('--').length-1].reverse!.join(',')
+              end
+
+            elsif state_abbr_list.any? { |abbr| split_term.include? abbr }
+              geo_term = split_term
+            end
+          end
+          #Other than a '--' field
+          #Experimental... example: Palmer (Mass) - history or Stores (retail trade) - Palmer, Mass
+        elsif term.include?(' - ')
+          term.split(' - ').each do |split_term|
+            if state_name_list.any? { |state| split_term.include? state } || state_abbr_list.any? { |abbr| split_term.include? abbr } || country_name_list.any? { |country| split_term.include? country }
+              geo_term = split_term
             end
 
-          elsif state_abbr_list.any? { |abbr| split_term.include? abbr }
-            geo_term = split_term
           end
-        end
-        #Other than a '--' field
-        #Experimental... example: Palmer (Mass) - history or Stores (retail trade) - Palmer, Mass
-      elsif term.include?(' - ')
-        term.split(' - ').each do |split_term|
-          if state_name_list.any? { |state| split_term.include? state } || state_abbr_list.any? { |abbr| split_term.include? abbr } || country_name_list.any? { |country| split_term.include? country }
-            geo_term = split_term
+        else
+          if term_split_list.length > 1 || term.include?(',')
+            geo_term = term
           end
 
-        end
-      else
-        if state_name_list.any? { |state| term.include? state } || state_abbr_list.any? { |abbr| term.include? abbr } || country_name_list.any? { |country| term.include? country }
-          geo_term = term
         end
       end
 

@@ -22,5 +22,30 @@ class ParserTest < ActiveSupport::TestCase
 
   end
 
+  def test_geographic_parser
+    #Nil results... problem cases
+    result = Geomash::Standardizer.parse_for_geographic_term('Yuma Indians')
+    assert_equal '', result
+
+    result = Geomash::Standardizer.parse_for_geographic_term('Yuma Indians--Woodworking')
+    assert_equal '', result
+
+    result = Geomash::Standardizer.parse_for_geographic_term('Norway maple')
+    assert_equal '', result
+
+    result = Geomash::Standardizer.parse_for_geographic_term('Norway maple')
+    assert_equal '', result
+
+    result = Geomash::Standardizer.parse_for_geographic_term('Art, Japanese')
+    assert_equal '', result
+
+    #Normal cases
+    result = Geomash::Standardizer.parse_for_geographic_term('Palmer (Mass) - history or Stores (retail trade) - Palmer, Mass')
+    assert_equal 'Palmer, Mass', result
+
+    result = Geomash::Standardizer.parse_for_geographic_term('Naroden Etnografski Muzeĭ (Sofia, Bulgaria)--Catalogs')
+    assert_equal 'Naroden Etnografski Muzeĭ, Sofia, Bulgaria', result
+  end
+
 
 end
