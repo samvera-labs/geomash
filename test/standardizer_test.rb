@@ -33,7 +33,7 @@ class ParserTest < ActiveSupport::TestCase
     result = Geomash::Standardizer.parse_for_geographic_term('Norway maple')
     assert_equal '', result
 
-    result = Geomash::Standardizer.parse_for_geographic_term('Norway maple')
+    result = Geomash::Standardizer.parse_for_geographic_term('Some Value--German Engineering--Cars')
     assert_equal '', result
 
     result = Geomash::Standardizer.parse_for_geographic_term('Art, Japanese')
@@ -45,6 +45,18 @@ class ParserTest < ActiveSupport::TestCase
 
     result = Geomash::Standardizer.parse_for_geographic_term('Naroden Etnografski Muzeĭ (Sofia, Bulgaria)--Catalogs')
     assert_equal 'Naroden Etnografski Muzeĭ, Sofia, Bulgaria', result
+
+    result = Geomash::Standardizer.parse_for_geographic_term('Germany')
+    assert_equal 'Germany', result
+
+    result = Geomash::Standardizer.parse_for_geographic_term('United States')
+    assert_equal 'United States', result
+
+    result = Geomash::Standardizer.parse_for_geographic_term('South Korea')
+    assert_equal 'South Korea', result
+
+    result = Geomash::Standardizer.parse_for_geographic_term('Blah (North Korea)')
+    assert_equal 'Blah, North Korea', result
   end
 
 

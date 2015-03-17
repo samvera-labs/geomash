@@ -28,6 +28,8 @@ module Geomash
       Country.all.each do |country_name_abbr_pair|
         country_name_list << country_name_abbr_pair.first
       end
+      country_name_list.append('South Korea') #Listed as Korea, Republic of in the gem
+      country_name_list.append('North Korea') #Listed as Korea, Democratic People's Republic Of of in the gem
 
       #Parsing a subject geographic term.
       if (state_name_list & term_split_list).present? || (state_abbr_list & term_split_list).present? || (country_name_list & term_split_list).present?
@@ -65,9 +67,10 @@ module Geomash
 
           end
         else
-          if term_split_list.length > 1 || term.include?(',')
-            geo_term = term
-          end
+          #if term_split_list.length > 1
+          geo_term = term.gsub('(', ',').gsub(' ,', ', ')
+          geo_term = geo_term.gsub(')', '')
+          #end
 
         end
       end
