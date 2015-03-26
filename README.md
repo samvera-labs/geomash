@@ -75,6 +75,23 @@ Most of the LCSH functions are in: Geomash::LCSH.
 
 Most of the Geonames functions are in: Geomash::Geonames
 
+## Caching
+
+You can enable caching of your requests to reduce the amount of HTTP requests you make and avoid hitting query limits.
+This is configured by the following YML setting:
+
+    parser_cache_enabled:: <true or false>
+
+Setting it to "true" just enables some code logic but will fail unless your application further configured it. For
+example, to use Dalli caching, add the following to an initializer of an application using this gem:
+
+    ::Geocoder.configure(:cache => Geomash::AutoexpireCacheDalli.new(Dalli::Client.new, 86400)) #86400 is the TTL
+
+You would also have 'memcached' installed (sudo apt-get install memcached) on your machine. If you instead prefer to
+use redis and have that installed, you can enable that by something like:
+
+    ::Geocoder.configure(:cache => Geomash::AutoexpireCacheRedis.new(Redis.new, 86400)) #86400 is the TTL
+
 ## Contributing
 
 1. As this is geared for our use case, let me know about your interest in this gem and how you would like it to function.

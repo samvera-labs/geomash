@@ -1,6 +1,11 @@
 module Geomash
   class Parser
 
+    def self.cache_enabled
+      return Geomash.config[:parser_cache_enabled] unless Geomash.config[:parser_cache_enabled].nil?
+      return false
+    end
+
     def self.mapquest_key
       Geomash.config[:mapquest_key] || '<mapquest_key>'
     end
@@ -44,12 +49,21 @@ module Geomash
         return {}
       end
 
-      Geocoder.configure(:lookup => :bing,:api_key => self.bing_key,:timeout => self.timeout, :always_raise => :all)
-      bing_api_result = Geocoder.search(term)
+      ::Geocoder.configure(:lookup => :bing,:api_key => self.bing_key,:timeout => self.timeout, :always_raise => :all)
 
-    rescue SocketError => e
-      retry unless (retry_count -= 1).zero?
-    else
+      begin
+        bing_api_result = Geocoder.search(term)
+      rescue SocketError => e
+        Geocoder::Lookup.get(:bing).cache.expire(Geocoder::Query.new(term).url) if self.cache_enabled #Expire this url
+        retry unless (retry_count -= 1).zero?
+      rescue Geocoder::OverQueryLimitError => e
+        Geocoder::Lookup.get(:bing).cache.expire(Geocoder::Query.new(term).url) if self.cache_enabled #Expire this url
+        raise e
+      rescue Exception => e
+        Geocoder::Lookup.get(:bing).cache.expire(Geocoder::Query.new(term).url) if self.cache_enabled #Expire this url
+        raise e
+      end
+
 
       #Use only for United States results... international results are inaccurate.
       if bing_api_result.present? && bing_api_result.first.data["address"]["countryRegion"] == 'United States'
@@ -113,13 +127,20 @@ module Geomash
         return {}
       end
 
-      Geocoder.configure(:lookup => :mapquest,:api_key => self.mapquest_key,:timeout => self.timeout, :always_raise => :all)
+      ::Geocoder.configure(:lookup => :mapquest,:api_key => self.mapquest_key,:timeout => self.timeout, :always_raise => :all)
 
-      mapquest_api_result = Geocoder.search(term)
-    rescue SocketError => e
-      retry unless (retry_count -= 1).zero?
-    else
-
+      begin
+        mapquest_api_result = Geocoder.search(term)
+      rescue SocketError => e
+        Geocoder::Lookup.get(:mapquest).cache.expire(Geocoder::Query.new(term).url) if self.cache_enabled #Expire this url
+        retry unless (retry_count -= 1).zero?
+      rescue Geocoder::OverQueryLimitError => e
+        Geocoder::Lookup.get(:mapquest).cache.expire(Geocoder::Query.new(term).url) if self.cache_enabled #Expire this url
+        raise e
+      rescue Exception => e
+        Geocoder::Lookup.get(:mapquest).cache.expire(Geocoder::Query.new(term).url) if self.cache_enabled #Expire this url
+        raise e
+      end
 
       #If this call returned a result...
       if mapquest_api_result.present?
@@ -173,11 +194,18 @@ module Geomash
       return_hash[:standardized_term] = term
 
       ::Geocoder.configure(:lookup => :google,:api_key => nil,:timeout => self.timeout, :always_raise => :all)
-
-      google_api_result = ::Geocoder.search(term)
-    rescue SocketError => e
-      retry unless (retry_count -= 1).zero?
-    else
+      begin
+        google_api_result = ::Geocoder.search(term)
+      rescue SocketError => e
+        Geocoder::Lookup.get(:google).cache.expire(Geocoder::Query.new(term).url) if self.cache_enabled #Expire this url
+        retry unless (retry_count -= 1).zero?
+      rescue Geocoder::OverQueryLimitError => e
+        Geocoder::Lookup.get(:google).cache.expire(Geocoder::Query.new(term).url) if self.cache_enabled #Expire this url
+        raise e
+      rescue Exception => e
+        Geocoder::Lookup.get(:google).cache.expire(Geocoder::Query.new(term).url) if self.cache_enabled #Expire this url
+        raise e
+      end
 
 
       #Check if only a partial match. To avoid errors, strip out the first part and try again...

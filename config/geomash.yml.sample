@@ -6,6 +6,7 @@ development:
   #NOTE: Bing also fairly unreliable but mostly works...
   bing_key: <bing_key>
   timeout: 7
+  parser_cache_enabled: false #See Readme before enabling this
 test: &TEST_
   tgn_enabled: true
   geonames_username: <username>
@@ -14,6 +15,7 @@ test: &TEST_
   #NOTE: Bing also fairly unreliable but mostly works...
   bing_key: <bing_key>
   timeout: 7
+  parser_cache_enabled: false #See Readme before enabling this
 production:
   tgn_enabled: true
   geonames_username: <username>
@@ -22,3 +24,4 @@ production:
   #NOTE: Bing also fairly unreliable but mostly works...
   bing_key: <bing_key>
   timeout: 7
+  parser_cache_enabled: false #See Readme before enabling this

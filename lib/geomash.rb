@@ -5,6 +5,8 @@ module Geomash
   require "geomash/tgn"
   require "geomash/geonames"
   require "geomash/town_lookup"
+  require "geomash/autoexpire_cache_dalli"
+  require "geomash/autoexpire_cache_redis"
   require "geocoder"
   require "countries"
   require "unidecoder"
