@@ -89,7 +89,15 @@ module Geomash
         end
         retry_count = retry_count + 1
 
-        geonames_response = Typhoeus::Request.get("http://api.geonames.org/search?username=#{self.geonames_username}&lang=en&style=FULL&q=#{CGI.escape(geonames_search_string)}&name_equals=#{CGI.escape(exact_name_term)}&country=#{Country.find_country_by_name(geo_hash[:country_part]).alpha2}")
+        country_code = nil
+        if geo_hash[:country_part] == 'South Korea'
+          country_code = 'KR'
+        elsif geo_hash[:country_part] == 'North Korea'
+          country_code = 'KP'
+        else
+          country_code = Country.find_country_by_name(geo_hash[:country_part]).alpha2
+        end
+        geonames_response = Typhoeus::Request.get("http://api.geonames.org/search?username=#{self.geonames_username}&lang=en&style=FULL&q=#{CGI.escape(geonames_search_string)}&name_equals=#{CGI.escape(exact_name_term)}&country=#{country_code}")
 
       end until (geonames_response.code != 500 || retry_count == max_retry)
 
