@@ -626,6 +626,31 @@ GROUP BY ?object_identifier
 
         end
 
+        #Case of Countries without a state breakdown... ie. Tokyo, Japan
+        if state_part.blank? && country_response[:id].present? && city_part.present? && !web_request_error
+          query = %{SELECT ?object_identifier
+WHERE
+{
+  ?x <http://purl.org/dc/elements/1.1/identifier> ?object_identifier .
+  ?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300008347> .
+  ?x <http://www.w3.org/2000/01/rdf-schema#label> ?object_label .
+  FILTER regex(?object_label, "^#{city_part}$", "i" )
+  ?x <http://vocab.getty.edu/ontology#broaderPreferredExtended> <http://vocab.getty.edu/tgn/#{country_response[:id]}> .
+}
+GROUP BY ?object_identifier
+}
+          cities_response = self.tgn_sparql_request(query)
+          if cities_response[:id].blank? && !cities_response[:errors]
+            return_hash[:original_string_differs] = true
+          else
+            return_hash[:id] = cities_response[:id]
+            return_hash[:rdf] = cities_response[:rdf]
+            return_hash[:parse_depth] = 3
+          end
+          web_request_error = true if cities_response[:errors]
+
+        end
+
       if cities_response[:id].present? && neighborhood_part.present? && !web_request_error
         query = %{SELECT ?object_identifier
 WHERE

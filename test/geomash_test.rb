@@ -160,6 +160,17 @@ class GeomashTest < ActiveSupport::TestCase
     assert_equal nil, result[:street_part]
     assert_equal true, result[:tgn][:original_string_differs] if Geomash::TGN.tgn_enabled == true
 
+    #Case of a country with no states
+    result = Geomash.parse('Tokyo, Japan')
+    assert_equal 'Tokyo', result[:city_part]
+    assert_equal nil, result[:state_part]
+    assert_equal 'Japan', result[:country_part]
+    assert_equal nil, result[:neighborhood_part]
+    assert_equal '7004472', result[:tgn][:id] if Geomash::TGN.tgn_enabled == true
+    assert_equal false, result[:tgn][:original_string_differs] if Geomash::TGN.tgn_enabled == true
+    assert_equal '1850147', result[:geonames][:id] if Geomash::Geonames.geonames_username != '<username>'
+    assert_equal false, result[:geonames][:original_string_differs] if Geomash::Geonames.geonames_username != '<username>'
+
     #Should find the Michigan Atlanta over the Georgia Atlanta
     #State part from an API giving me Atlanta????
     result = Geomash.parse('Atlanta, MI')
