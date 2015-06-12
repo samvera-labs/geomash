@@ -194,6 +194,16 @@ class GeomashTest < ActiveSupport::TestCase
     assert_equal '1835841', result[:geonames][:id] if Geomash::Geonames.geonames_username != '<username>'
     assert_equal false, result[:geonames][:original_string_differs] if Geomash::Geonames.geonames_username != '<username>'
 
+    #TODO: This should also likely parse as North Korea as well...
+    result = Geomash.parse('Northern Ireland')
+    assert_equal nil, result[:city_part]
+    assert_equal 'Northern Ireland', result[:state_part]
+    assert_equal 'United Kingdom', result[:country_part]
+    assert_equal nil, result[:neighborhood_part]
+    assert_equal '7002448', result[:tgn][:id] if Geomash::TGN.tgn_enabled == true
+    assert_equal false, result[:tgn][:original_string_differs] if Geomash::TGN.tgn_enabled == true
+    assert_equal '2641364', result[:geonames][:id] if Geomash::Geonames.geonames_username != '<username>'
+    assert_equal false, result[:geonames][:original_string_differs] if Geomash::Geonames.geonames_username != '<username>'
 
 
   end
