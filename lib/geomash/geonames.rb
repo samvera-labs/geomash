@@ -28,7 +28,16 @@ module Geomash
         parsed_xml = Nokogiri::Slop(geonames_response.body)
 
         parsed_xml.geonames.geoname.each do |geoname|
-           hier_geo[geoname.fcode.text.downcase.to_sym] = geoname.toponymName.text
+          #In some cases, geonames duplicates the fcode keys? See fcode "area" of:
+          #http://api.geonames.org/hierarchy?username=<username>&lang=en&style=FULL&geonameId=6947909
+          #FIXME: Something better needs to be done...
+          if hier_geo.has_key?(geoname.fcode.text.downcase.to_sym)
+            temp_key = geoname.fcode.text.downcase + "2"
+            hier_geo[temp_key.to_sym] = geoname.toponymName.text
+          else
+            hier_geo[geoname.fcode.text.downcase.to_sym] = geoname.toponymName.text
+          end
+
         end
 
         #FIXME: Code4Lib lazy implementation... will get last result
