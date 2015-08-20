@@ -500,6 +500,10 @@ EXAMPLE SPARQL:
       neighboorhood_response = {}
 
       state_part = geo_hash[:state_part]
+      #FIXME: In TGN, Ho Chi Minh doesn't have an ASCII label... unsure what to do in this case... maybe a synonyms file?
+      if state_part == 'Ho Chi Minh'
+        state_part = 'Hồ Chí Minh'
+      end
 
       country_code = Geomash::Constants::COUNTRY_TGN_LOOKUP[geo_hash[:country_part]][:tgn_id] unless Geomash::Constants::COUNTRY_TGN_LOOKUP[geo_hash[:country_part]].blank?
       country_code ||= ''
@@ -583,6 +587,7 @@ WHERE
   {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000776>} UNION
   {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300236112>} UNION
   {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387506>} UNION
+  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300265612>} UNION
   {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300387081>} .
   ?x <http://www.w3.org/2000/01/rdf-schema#label> ?object_label .
   FILTER regex(?object_label, "^#{state_part}$", "i" )

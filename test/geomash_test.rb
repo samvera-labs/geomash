@@ -194,7 +194,6 @@ class GeomashTest < ActiveSupport::TestCase
     assert_equal '1835841', result[:geonames][:id] if Geomash::Geonames.geonames_username != '<username>'
     assert_equal false, result[:geonames][:original_string_differs] if Geomash::Geonames.geonames_username != '<username>'
 
-    #TODO: This should also likely parse as North Korea as well...
     result = Geomash.parse('Northern Ireland')
     assert_equal nil, result[:city_part]
     assert_equal 'Northern Ireland', result[:state_part]
@@ -204,6 +203,20 @@ class GeomashTest < ActiveSupport::TestCase
     assert_equal false, result[:tgn][:original_string_differs] if Geomash::TGN.tgn_enabled == true
     assert_equal '2641364', result[:geonames][:id] if Geomash::Geonames.geonames_username != '<username>'
     assert_equal false, result[:geonames][:original_string_differs] if Geomash::Geonames.geonames_username != '<username>'
+
+    result = Geomash.parse('Phnom Penh (Cambodia)')
+    assert_equal '7004076', result[:tgn][:id] if Geomash::TGN.tgn_enabled == true
+    assert_equal false, result[:tgn][:original_string_differs] if Geomash::TGN.tgn_enabled == true
+    assert_equal '1821306', result[:geonames][:id] if Geomash::Geonames.geonames_username != '<username>'
+    assert_equal false, result[:geonames][:original_string_differs] if Geomash::Geonames.geonames_username != '<username>'
+
+
+    result = Geomash.parse('Ho Chi Minh City (Vietnam)')
+    assert_equal '7001069', result[:tgn][:id] if Geomash::TGN.tgn_enabled == true
+    assert_equal false, result[:tgn][:original_string_differs] if Geomash::TGN.tgn_enabled == true
+    assert_equal '1566083', result[:geonames][:id] if Geomash::Geonames.geonames_username != '<username>'
+    assert_equal false, result[:geonames][:original_string_differs] if Geomash::Geonames.geonames_username != '<username>'
+
 
 
   end

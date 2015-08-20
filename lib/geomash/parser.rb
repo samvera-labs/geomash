@@ -217,16 +217,43 @@ module Geomash
         end
       end
 
+
       if google_api_result.present?
+        #Find the best match index... case of Ho Chi Minh City (Vietnam) resolving to an airport...
+        best_match_index = 0
+        best_city_match = -1
+        best_state_match = -1
+
+        google_api_result.each_with_index do |single_google_api_result, index|
+          single_google_api_result.data["address_components"].each do |result|
+            if (result['types'] & ['locality']).present?
+              if return_hash[:standardized_term].to_ascii.include?(result['long_name'].to_ascii)
+                best_city_match = index if best_city_match == -1
+              end
+            elsif (result['types'] & ['administrative_area_level_1']).present?
+              if return_hash[:standardized_term].to_ascii.include?(result['long_name'].to_ascii.gsub('-city', ''))
+                best_state_match = index if best_state_match == -1
+              end
+            end
+          end
+        end
+
+        if best_city_match != -1
+          best_match_index = best_city_match
+        elsif best_state_match != -1
+          best_match_index = best_state_match
+        end
+
+
         #Types: street number, route, neighborhood, establishment, transit_station, bus_station
-        google_api_result.first.data["address_components"].each do |result|
+        google_api_result[best_match_index].data["address_components"].each do |result|
           if (result['types'] & ['street number', 'route', 'establishment', 'transit_station', 'bus_station']).present? || (result['types'].include?('neighborhood') && !result['types'].include?('political'))
             #return_hash[:term_differs_from_tgn] = true
             #TODO: Not implemented for Google results right now.
             #return_hash[:street_part] = 'TODO: Not Implemented for Google Results'
-            return_hash[:coords] = {:latitude=>google_api_result.first.data['geometry']['location']['lat'].to_s,
-                                         :longitude=>google_api_result.first.data['geometry']['location']['lng'].to_s,
-                                         :combined=>google_api_result.first.data['geometry']['location']['lat'].to_s + ',' + google_api_result.first.data['geometry']['location']['lng'].to_s}
+            return_hash[:coords] = {:latitude=>google_api_result[best_match_index].data['geometry']['location']['lat'].to_s,
+                                         :longitude=>google_api_result[best_match_index].data['geometry']['location']['lng'].to_s,
+                                         :combined=>google_api_result[best_match_index].data['geometry']['location']['lat'].to_s + ',' + google_api_result[best_match_index].data['geometry']['location']['lng'].to_s}
           elsif (result['types'] & ['country']).present?
             return_hash[:country_part] = result['long_name']
           elsif (result['types'] & ['administrative_area_level_1']).present?
@@ -238,7 +265,7 @@ module Geomash
           end
         end
 
-        return_hash[:term_differs_from_tgn] ||= google_api_result.first.data['partial_match'] unless google_api_result.first.data['partial_match'].blank?
+        return_hash[:term_differs_from_tgn] ||= google_api_result[best_match_index].data['partial_match'] unless google_api_result[best_match_index].data['partial_match'].blank?
       end
 
       #FIXME: Google free API rate limit is 5 requests / 1 second now (used to be 10). Need a better way to handle this.
