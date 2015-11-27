@@ -217,6 +217,18 @@ class GeomashTest < ActiveSupport::TestCase
     assert_equal '1566083', result[:geonames][:id] if Geomash::Geonames.geonames_username != '<username>'
     assert_equal false, result[:geonames][:original_string_differs] if Geomash::Geonames.geonames_username != '<username>'
 
+    #Ensure we get "Newton" instead of "Newtown" that has an altlabel of "Newton"
+    #Should this find Chestnut hill...?
+    result = Geomash.parse('Chestnut Hill, Massachusetts')
+    assert_equal 'Newton', result[:city_part]
+    assert_equal 'Massachusetts', result[:state_part]
+    assert_equal 'United States', result[:country_part]
+    assert_equal 'Chestnut Hill', result[:neighborhood_part]
+    assert_equal '7032056', result[:tgn][:id] if Geomash::TGN.tgn_enabled == true #2050214 or
+    assert_equal false, result[:tgn][:original_string_differs] if Geomash::TGN.tgn_enabled == true
+    assert_equal '4932957', result[:geonames][:id] if Geomash::Geonames.geonames_username != '<username>'
+    assert_equal false, result[:geonames][:original_string_differs] if Geomash::Geonames.geonames_username != '<username>'
+
 
 
   end

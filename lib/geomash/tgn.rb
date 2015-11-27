@@ -607,8 +607,24 @@ GROUP BY ?object_identifier
           web_request_error = true if states_response[:errors]
         end
 
+        #Do prefLabel first and then do just label... needed for case of Newton vs Newtown in MA (Newtown has an altlabel of Newton)
         if states_response[:id].present? && city_part.present? && !web_request_error
           query = %{SELECT ?object_identifier
+WHERE
+{
+  ?x <http://purl.org/dc/elements/1.1/identifier> ?object_identifier .
+  ?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300008347> .
+  ?x <http://www.w3.org/2004/02/skos/core#prefLabel> ?object_label .
+  FILTER regex(?object_label, "^#{city_part}$", "i" )
+  ?x <http://vocab.getty.edu/ontology#broaderPreferredExtended> <http://vocab.getty.edu/tgn/#{country_response[:id]}> .
+  ?x <http://vocab.getty.edu/ontology#broaderPreferredExtended> <http://vocab.getty.edu/tgn/#{states_response[:id]}> .
+}
+GROUP BY ?object_identifier
+}
+
+          cities_response = self.tgn_sparql_request(query)
+          if cities_response[:id].blank? && !cities_response[:errors]
+            query = %{SELECT ?object_identifier
 WHERE
 {
   ?x <http://purl.org/dc/elements/1.1/identifier> ?object_identifier .
@@ -620,7 +636,10 @@ WHERE
 }
 GROUP BY ?object_identifier
 }
-          cities_response = self.tgn_sparql_request(query)
+            cities_response = self.tgn_sparql_request(query)
+          end
+
+
           if cities_response[:id].blank? && !cities_response[:errors]
             return_hash[:original_string_differs] = true
           else
@@ -672,6 +691,26 @@ WHERE
 GROUP BY ?object_identifier
 }
         neighborhood_response = self.tgn_sparql_request(query)
+
+        #Try once more on just prefLabel with no city restriction and inhabited places type added...
+        if neighborhood_response[:id].blank? && !neighborhood_response[:errors]
+          query = %{SELECT ?object_identifier
+WHERE
+{
+  ?x <http://purl.org/dc/elements/1.1/identifier> ?object_identifier .
+  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000745>} UNION
+  {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300008347>} .
+  ?x <http://www.w3.org/2004/02/skos/core#prefLabel> ?object_label .
+  FILTER regex(?object_label, "^#{neighborhood_part}$", "i" )
+  ?x <http://vocab.getty.edu/ontology#broaderPreferredExtended> <http://vocab.getty.edu/tgn/#{country_response[:id]}> .
+  ?x <http://vocab.getty.edu/ontology#broaderPreferredExtended> <http://vocab.getty.edu/tgn/#{states_response[:id]}> .
+}
+GROUP BY ?object_identifier
+}
+          neighborhood_response = self.tgn_sparql_request(query)
+        end
+
+
         if neighborhood_response[:id].blank? && !neighborhood_response[:errors]
           return_hash[:original_string_differs]=true
         else

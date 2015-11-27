@@ -191,6 +191,11 @@ module Geomash
         return {}
       end
 
+      #FIXME: Handle just a plain 'Korea' better...
+      if term.match(/Korea/) and !term.match(/South/) and !term.match(/North/)
+        term.gsub!('Korea', 'South Korea')
+      end
+
       return_hash[:standardized_term] = term
 
       ::Geocoder.configure(:lookup => :google,:api_key => nil,:timeout => self.timeout, :always_raise => :all)
