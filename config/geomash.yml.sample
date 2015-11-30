@@ -5,6 +5,8 @@ development:
   mapquest_key: <mapquest_key>
   #NOTE: Bing also fairly unreliable but mostly works...
   bing_key: <bing_key>
+  #NOTE: Optional Google API key
+  google_key: <google_key>
   timeout: 7
   parser_cache_enabled: false #See Readme before enabling this
 test: &TEST_
@@ -14,6 +16,8 @@ test: &TEST_
   mapquest_key: <mapquest_key>
   #NOTE: Bing also fairly unreliable but mostly works...
   bing_key: <bing_key>
+  #NOTE: Optional Google API key
+  google_key: <google_key>
   timeout: 7
   parser_cache_enabled: false #See Readme before enabling this
 production:
@@ -23,5 +27,7 @@ production:
   mapquest_key: <mapquest_key>
   #NOTE: Bing also fairly unreliable but mostly works...
   bing_key: <bing_key>
+  #NOTE: Optional Google API key
+  google_key: <google_key>
   timeout: 7
   parser_cache_enabled: false #See Readme before enabling this

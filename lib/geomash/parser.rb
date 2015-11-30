@@ -14,6 +14,10 @@ module Geomash
       Geomash.config[:bing_key] || '<bing_key>'
     end
 
+    def self.google_key
+      Geomash.config[:google_key] || '<google_key>'
+    end
+
     def self.timeout
       Geomash.config[:timeout]
     end
@@ -198,7 +202,12 @@ module Geomash
 
       return_hash[:standardized_term] = term
 
-      ::Geocoder.configure(:lookup => :google,:api_key => nil,:timeout => self.timeout, :always_raise => :all)
+      if self.google_key != '<google_key>'
+        ::Geocoder.configure(:lookup => :google,:api_key => self.google_key,:timeout => self.timeout, :use_https => true, :always_raise => :all)
+      else
+        ::Geocoder.configure(:lookup => :google,:api_key => nil,:timeout => self.timeout, :always_raise => :all)
+      end
+
       begin
         google_api_result = ::Geocoder.search(term)
       rescue SocketError => e
