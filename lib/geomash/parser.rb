@@ -18,6 +18,10 @@ module Geomash
       Geomash.config[:google_key] || '<google_key>'
     end
 
+    def self.google_premier
+      Geomash.config[:google_premier] || ['key', 'client', 'channel']
+    end
+
     def self.timeout
       Geomash.config[:timeout]
     end
@@ -202,7 +206,9 @@ module Geomash
 
       return_hash[:standardized_term] = term
 
-      if self.google_key != '<google_key>'
+      if self.google_premier != ['key', 'client', 'channel']
+        ::Geocoder.configure(:lookup => :google_premier,:api_key => self.google_premier,:timeout => self.timeout, :use_https => true, :always_raise => :all)
+      elsif self.google_key != '<google_key>'
         ::Geocoder.configure(:lookup => :google,:api_key => self.google_key,:timeout => self.timeout, :use_https => true, :always_raise => :all)
       else
         ::Geocoder.configure(:lookup => :google,:api_key => nil,:timeout => self.timeout, :always_raise => :all)
