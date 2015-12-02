@@ -17,7 +17,7 @@ Gem::Specification.new do |s|
   s.test_files = Dir["test/**/*"]
 
   s.add_dependency "activesupport"
-  s.add_dependency "countries", '0.11.5' #FIXME: Seems broken in later versions?
+  s.add_dependency "countries", '1.2.2'
   s.add_dependency "geocoder"
   s.add_dependency 'unidecoder'
   s.add_dependency 'typhoeus'

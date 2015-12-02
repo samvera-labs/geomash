@@ -20,13 +20,17 @@ module Geomash
       country_name_list = []
 
       #Countries gem of https://github.com/hexorx/countries
-      Country.new('US').states.each do |state_abbr, state_names|
+      ISO3166::Country.new('US').states.each do |state_abbr, state_names|
         state_abbr_list << ' ' + state_abbr
         state_name_list << state_names["name"]
       end
 
-      Country.all.each do |country_name_abbr_pair|
-        country_name_list << country_name_abbr_pair.first
+      ISO3166::Country.all.each do |country_name_hash|
+        #country_name_list << country_name_abbr_pair.first
+        country_name_list << country_name_hash.data["name"] if country_name_hash.data["name"].present?
+        country_name_hash.data["names"].each do |name|
+          country_name_list << name
+        end
       end
       country_name_list.append('South Korea') #Listed as Korea, Republic of in the gem
       country_name_list.append('North Korea') #Listed as Korea, Democratic People's Republic Of of in the gem
