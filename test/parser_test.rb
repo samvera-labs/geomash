@@ -20,6 +20,13 @@ class ParserTest < ActiveSupport::TestCase
     assert_equal 'Roxbury', result[:neighborhood_part]
     assert_equal nil, result[:street_part]
 
+    result = Geomash::Parser.parse_google_api('Macedonia')
+    assert_equal nil, result[:city_part]
+    assert_equal nil, result[:state_part]
+    assert_equal 'Macedonia', result[:country_part]
+    assert_equal nil, result[:neighborhood_part]
+    assert_equal nil, result[:street_part]
+
 
     #FIXME!!!  Is this alright?
     #result = Bplgeo::Parser.parse_google_api('201 Dowman Dr., Atlanta, GA 30322')
