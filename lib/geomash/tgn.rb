@@ -391,7 +391,7 @@ EXAMPLE SPARQL:
         #Broader places
         #FIXME: could parse xml:lang instead of the three optional clauses now... didn't expect places to lack a default preferred label.
         if broader_place_type_list.present? #Case of World... top of hierachy check
-          query = "SELECT ?identifier_place ?place_label_default ?place_label_en ?place_label_remaining ?aat_pref WHERE {"
+          query = "SELECT ?identifier_place ?place_label_default ?place_label_en ?aat_pref ?place_label_latn_pinyin WHERE {"
 
           broader_place_type_list.each do |place_uri|
             query += %{{<#{place_uri}> <http://purl.org/dc/elements/1.1/identifier> ?identifier_place .
@@ -407,16 +407,13 @@ EXAMPLE SPARQL:
         OPTIONAL {<#{place_uri}> <http://www.w3.org/2004/02/skos/core#altLabel> ?place_label_alt
                  FILTER langMatches( lang(?place_label_alt), "en" )
                  }
-        OPTIONAL {<#{place_uri}> <http://www.w3.org/2004/02/skos/core#prefLabel> ?place_label_remaining
-                 FILTER(!langMatches( lang(?place_label_remaining), "" ) && !langMatches( lang(?place_label_remaining), "en" ) && !langMatches( lang(?place_label_remaining), "zh-latn-pinyin" ))
-                 }
         <#{place_uri}> <http://vocab.getty.edu/ontology#placeTypePreferred> ?aat_pref
        } UNION
      }
           end
 
           query = query[0..-12]
-          query += ". } GROUP BY ?identifier_place ?place_label_default ?place_label_en ?place_label_latn_pinyin ?place_label_alt ?place_label_remaining ?aat_pref"
+          query += ". } GROUP BY ?identifier_place ?place_label_default ?place_label_en ?place_label_latn_pinyin ?place_label_alt ?aat_pref"
           query = query.squish
 
           tgn_response_for_aat = Typhoeus::Request.post("http://vocab.getty.edu/sparql.json", :body=>{:query=>query}, :timeout=>500)
@@ -431,10 +428,12 @@ EXAMPLE SPARQL:
               tgn_term = aat_response['place_label_default']['value']
             elsif aat_response['place_label_latn_pinyin'].present? && aat_response['place_label_latn_pinyin']['value'] != '-'
               tgn_term = aat_response['place_label_latn_pinyin']['value']
+            elsif aat_response['place_label_latn_notone'].present? && aat_response['place_label_latn_notone']['value'] != '-'
+              tgn_term = aat_response['place_label_latn_notone']['value']
             elsif aat_response['place_label_alt'].present? && aat_response['place_label_alt']['value'] != '-'
               tgn_term = aat_response['place_label_alt']['value']
             else
-              tgn_term = aat_response['place_label_remaining']['value']
+              raise "Could not find a label for: #{tgn_id}"
             end
 
             case tgn_term_type

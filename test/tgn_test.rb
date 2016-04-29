@@ -14,6 +14,18 @@ class TGNTest < ActiveSupport::TestCase
        assert_equal 'United States', result[:hier_geo][:country]
        assert_equal 'North and Central America', result[:hier_geo][:continent]
 
+
+       #Check for a weird prefLabel case of only zh-latn-pinyin-x-notone
+       result = Geomash::TGN.get_tgn_data('7002066')
+       assert_equal '45.75', result[:coords][:latitude]
+       assert_equal '126.65', result[:coords][:longitude]
+       assert_equal '45.75,126.65', result[:coords][:combined]
+       assert_equal 'Harbin', result[:hier_geo][:city]
+       assert_equal 'Heilongjiang', result[:hier_geo][:province]
+       assert_equal 'China', result[:hier_geo][:country]
+       assert_equal 'Asia', result[:hier_geo][:continent]
+       assert_equal 'Harbin', result[:non_hier_geo][:value]
+       assert_nil result[:non_hier_geo][:qualifier]
     end
   end
 end
