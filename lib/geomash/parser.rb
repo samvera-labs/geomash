@@ -289,6 +289,11 @@ module Geomash
         return_hash[:term_differs_from_tgn] ||= google_api_result[best_match_index].data['partial_match'] unless google_api_result[best_match_index].data['partial_match'].blank?
       end
 
+      #This changed in Google... need a better way to handle this
+      if return_hash[:state_part] == 'Nord-Pas-de-Calais Picardie'
+        return_hash[:state_part] = 'Picardy'
+      end
+
       #FIXME: Google free API rate limit is 5 requests / 1 second now (used to be 10). Need a better way to handle this.
       sleep(0.1)
 
