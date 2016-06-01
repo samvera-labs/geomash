@@ -26,6 +26,17 @@ class TGNTest < ActiveSupport::TestCase
        assert_equal 'Asia', result[:hier_geo][:continent]
        assert_equal 'Harbin', result[:non_hier_geo][:value]
        assert_nil result[:non_hier_geo][:qualifier]
+
+       result = Geomash::TGN.get_tgn_data('7008038')
+       assert_equal '48.866667', result[:coords][:latitude]
+       assert_equal '2.333333', result[:coords][:longitude]
+       assert_equal '48.866667,2.333333', result[:coords][:combined]
+       assert_equal 'Paris', result[:hier_geo][:city]
+       assert_equal 'Île-de-France', result[:hier_geo][:province]
+       assert_equal 'France', result[:hier_geo][:country]
+       assert_equal 'Europe', result[:hier_geo][:continent]
+       assert_equal nil, result[:non_hier_geo][:value]
+       assert_nil result[:non_hier_geo][:qualifier]
     end
   end
 end

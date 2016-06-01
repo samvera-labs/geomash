@@ -404,22 +404,20 @@ EXAMPLE SPARQL:
         OPTIONAL {<#{place_uri}> <http://www.w3.org/2004/02/skos/core#prefLabel> ?place_label_latn_pinyin
                  FILTER langMatches( lang(?place_label_latn_pinyin), "zh-latn-pinyin" )
                  }
-        OPTIONAL {<#{place_uri}> <http://www.w3.org/2004/02/skos/core#altLabel> ?place_label_alt
-                 FILTER langMatches( lang(?place_label_alt), "en" )
-                 }
         <#{place_uri}> <http://vocab.getty.edu/ontology#placeTypePreferred> ?aat_pref
        } UNION
      }
           end
 
           query = query[0..-12]
-          query += ". } GROUP BY ?identifier_place ?place_label_default ?place_label_en ?place_label_latn_pinyin ?place_label_alt ?aat_pref"
+          query += ". } GROUP BY ?identifier_place ?place_label_default ?place_label_en ?place_label_latn_pinyin ?aat_pref"
           query = query.squish
 
           tgn_response_for_aat = Typhoeus::Request.post("http://vocab.getty.edu/sparql.json", :body=>{:query=>query}, :timeout=>500)
           as_json_tgn_response_for_aat = JSON.parse(tgn_response_for_aat.body)
 
           as_json_tgn_response_for_aat["results"]["bindings"].each do |aat_response|
+            tgn_term = nil
             tgn_term_type = aat_response['aat_pref']['value'].split('/').last
 
             if aat_response['place_label_en'].present? && aat_response['place_label_en']['value'] != '-'
@@ -430,10 +428,24 @@ EXAMPLE SPARQL:
               tgn_term = aat_response['place_label_latn_pinyin']['value']
             elsif aat_response['place_label_latn_notone'].present? && aat_response['place_label_latn_notone']['value'] != '-'
               tgn_term = aat_response['place_label_latn_notone']['value']
-            elsif aat_response['place_label_alt'].present? && aat_response['place_label_alt']['value'] != '-'
-              tgn_term = aat_response['place_label_alt']['value']
             else
-              raise "Could not find a label for: #{tgn_id}"
+              #Just take the first prefLabel... could perhaps do some preference eventually... see 7002883 for an example of only a french prefLabel
+              default_label_response = Typhoeus::Request.get("http://vocab.getty.edu/download/json", :params=>{:uri=>"http://vocab.getty.edu/tgn/#{aat_response['identifier_place']}.json"}, :timeout=>500)
+              JSON.parse(default_label_response.body)['results']['bindings'].each do |ntriple|
+                case ntriple['Predicate']['value']
+                  when 'http://www.w3.org/2004/02/skos/core#prefLabel'
+                    if ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'en'
+                      tgn_term = ntriple['Object']['value']
+                    else
+                      tgn_term ||= ntriple['Object']['value']
+                    end
+                end
+              end
+
+              if tgn_term.blank?
+                raise "Could not find a label for broader: #{place_uri} of base term: #{tgn_id}"
+              end
+
             end
 
             case tgn_term_type
