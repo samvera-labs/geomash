@@ -430,7 +430,7 @@ EXAMPLE SPARQL:
               tgn_term = aat_response['place_label_latn_notone']['value']
             else
               #Just take the first prefLabel... could perhaps do some preference eventually... see 7002883 for an example of only a french prefLabel
-              default_label_response = Typhoeus::Request.get("http://vocab.getty.edu/download/json", :params=>{:uri=>"http://vocab.getty.edu/tgn/#{aat_response['identifier_place']}.json"}, :timeout=>500)
+              default_label_response = Typhoeus::Request.get("http://vocab.getty.edu/download/json", :params=>{:uri=>"http://vocab.getty.edu/tgn/#{aat_response['identifier_place']['value']}.json"}, :timeout=>500)
               JSON.parse(default_label_response.body)['results']['bindings'].each do |ntriple|
                 case ntriple['Predicate']['value']
                   when 'http://www.w3.org/2004/02/skos/core#prefLabel'
