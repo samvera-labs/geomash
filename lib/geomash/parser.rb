@@ -230,8 +230,9 @@ module Geomash
 
       #Check if only a partial match. To avoid errors, strip out the first part and try again...
       #Need better way to check for street endings. See: http://pe.usps.gov/text/pub28/28apc_002.htm
+      #Fixme: This breaks Washington DC (Airport)
       if google_api_result.present?
-        if google_api_result.first.data['partial_match'] && term.split(',').length > 1 && !term.downcase.include?('street') && !term.downcase.include?('st.') && !term.downcase.include?('avenue') && !term.downcase.include?('ave.') && !term.downcase.include?('court') && !term.downcase.include?('dr.')
+        if google_api_result.first.data['partial_match'] && term.split(',').length > 1 && !term.downcase.include?('street') && !term.downcase.include?('st.') && !term.downcase.include?('avenue') && !term.downcase.include?('ave.') && !term.downcase.include?('court') && !term.downcase.include?('dr.') && !term.downcase.include?('airport')  && !term.downcase.include?('building')
           term = term.split(',')[1..term.split(',').length-1].join(',').strip
           google_api_result = Geocoder.search(term)
         end
