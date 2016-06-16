@@ -103,8 +103,12 @@ module Geomash
           country_code = 'KR'
         elsif geo_hash[:country_part] == 'North Korea'
           country_code = 'KP'
+        elsif geo_hash[:country_part] == 'Republic of the Congo'
+          country_code = 'CG'
         else
-          country_code = ISO3166::Country.find_country_by_name(geo_hash[:country_part]).alpha2
+          country_lookup = ISO3166::Country.find_country_by_name(geo_hash[:country_part])
+          raise "Could not find Country in geonames for: #{geo_hash[:country_part]}" if country_lookup.blank?
+          country_code = country_lookup.alpha2
         end
         geonames_response = Typhoeus::Request.get("http://api.geonames.org/search?username=#{self.geonames_username}&lang=en&style=FULL&q=#{CGI.escape(geonames_search_string)}&name_equals=#{CGI.escape(exact_name_term)}&country=#{country_code}")
 
