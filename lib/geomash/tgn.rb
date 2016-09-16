@@ -375,12 +375,8 @@ EXAMPLE SPARQL:
             #Fix cases like http://vocab.getty.edu/aat/300132316 which are bays (bodies of water)
             aat_term = aat_term.gsub(/ \(.+\)$/, '')
 
-            if (aat_term =~ /ies$/).present?
-              aat_term = aat_term.gsub(/ies$/, 'y')
-            elsif (aat_term =~ /es$/).present?
-              aat_term = aat_term.gsub(/es$/, '')
-            elsif (aat_term =~ /s$/).present?
-              aat_term = aat_term.gsub(/s$/, '')
+            if (aat_term =~ /ies$/).present? || (aat_term =~ /es$/).present? || (aat_term =~ /s$/).present?
+              aat_term = aat_term.singularize
             end
 
             #Fix cases like "Boston Harbor" as "Boston Harbor (harbor)" isn't that helpful
