@@ -116,7 +116,13 @@ module Geomash
         end
       end
 
-      geo_term = geo_term.squeeze(',')
+      temp_term = []
+      geo_term.split(',').each do |split_term|
+        temp_term << split_term.strip if split_term.present?
+      end
+      geo_term = temp_term.join(', ')
+
+      geo_term = geo_term.squeeze(',') #This may no longer bee needed wih th the above
 
       return geo_term
     end
@@ -188,7 +194,8 @@ module Geomash
 
       #Keep original string if three parts at least or if there is a number in the term.
       #TODO: Make this better!
-      if (term.split(',').length >= 3 && geo_hash[:neighborhood_part].blank?) || (term.split(',').length >= 2 && geo_hash[:city_part].blank?) || term.split(',').length >= 4 || term.match(/\d/).present?
+      #Note: Counties can cause this first length check to fail. For now, adding a check for county word but temporary solution...
+      if (term.split(',').length >= 4 && geo_hash[:neighborhood_part].blank?) || (term.split(',').length >= 3 && geo_hash[:neighborhood_part].blank? && !geo_hash[:original_term].match(/[Cc]ounty/)) || (term.split(',').length >= 2 && geo_hash[:city_part].blank?) || term.split(',').length >= 4 || term.match(/\d/).present?
         return true
       end
 
