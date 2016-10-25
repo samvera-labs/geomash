@@ -282,16 +282,18 @@ module Geomash
             return_hash[:state_part] = result['long_name'].to_ascii.gsub('-city', '')
           elsif (result['types'] & ['locality']).present?
             return_hash[:city_part] = result['long_name']
-          elsif (result['types'] & ['sublocality', 'political']).length == 2 || result['types'].include?('neighborhood')
-              return_hash[:neighborhood_part] = result['long_name']
+          elsif (result['types'] & ['sublocality', 'political']).length == 2
+              return_hash[:neighborhood_part] ||= result['long_name'] #See term 'Roxbury (Boston, Mass.)' for why neighborhood should take precedence
+          elsif result['types'].include?('neighborhood')
+            return_hash[:neighborhood_part] = result['long_name']
           end
         end
 
         return_hash[:term_differs_from_tgn] ||= google_api_result[best_match_index].data['partial_match'] unless google_api_result[best_match_index].data['partial_match'].blank?
       end
 
-      #This changed in Google... need a better way to handle this
-      if return_hash[:state_part] == 'Nord-Pas-de-Calais Picardie'
+      #This changed in Google... twice now actually... need a better way to handle this
+      if return_hash[:state_part] == 'Nord-Pas-de-Calais Picardie' || return_hash[:state_part] == 'Nord-Pas-de-Calais-Picardie'
         return_hash[:state_part] = 'Picardy'
       end
 

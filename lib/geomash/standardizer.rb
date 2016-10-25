@@ -11,7 +11,7 @@ module Geomash
         return ''
       end
 
-      term_split_list = term.split(/[,\-\(\(]/).reject{ |e| e.empty? }
+      term_split_list = term.split(/[,\-\(\(]|&gt;/).reject{ |e| e.empty? }
       term_split_list.each{ |e| e.gsub!(/[^\w\s]/, "") } #Remove punctuation
       term_split_list.each{ |e| e.strip! } #Remove any extra remaining whitespace
       term_split_list.reject{ |e| e.empty? }
@@ -72,7 +72,7 @@ module Geomash
           end
         else
           #if term_split_list.length > 1
-          geo_term = term.gsub('(', ',').gsub(' ,', ', ')
+          geo_term = term.gsub('(', ',').gsub(' ,', ', ').gsub(' &gt;', ',')
           geo_term = geo_term.gsub(')', '')
           #end
 
@@ -98,6 +98,9 @@ module Geomash
 
       #Replace any semicolons with commas... possible strip them?
       geo_term = geo_term.gsub(';', ',')
+
+      #Replace &gt; with commas
+      geo_term = geo_term.gsub('&gt;', ',').gsub('>', ',')
 
       #Terms in paranthesis will cause some geographic parsers to freak out. Switch to commas instead.
       if geo_term.match(/[\(\)]+/)

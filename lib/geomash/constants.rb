@@ -84,6 +84,7 @@ module Geomash
         '(Republic)',
         'Directories',
         'Biography',
+        'county',
         #Some date removal
         /[\d]+th [cC]entury,/
     ]
