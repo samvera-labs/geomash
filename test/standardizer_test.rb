@@ -57,6 +57,20 @@ class ParserTest < ActiveSupport::TestCase
 
     result = Geomash::Standardizer.parse_for_geographic_term('Blah (North Korea)')
     assert_equal 'Blah, North Korea', result
+
+    result = Geomash::Standardizer.parse_for_geographic_term('Massachusetts > Hampden (county) > Chicopee')
+    assert_equal 'Massachusetts, Hampden, county, Chicopee', result
+
+    result = Geomash::Standardizer.parse_for_geographic_term('Massachusetts &gt; Hampden (county) &gt; Chicopee')
+    assert_equal 'Massachusetts, Hampden, county, Chicopee', result
+  end
+
+  def test_geographic_standardizer
+    result = Geomash::Standardizer.standardize_geographic_term('Massachusetts > Hampden (county) > Chicopee')
+    assert_equal 'Massachusetts, Hampden, Chicopee', result
+
+    result = Geomash::Standardizer.standardize_geographic_term('Massachusetts &gt; Hampden (county) &gt; Chicopee')
+    assert_equal 'Massachusetts, Hampden, Chicopee', result
   end
 
 
