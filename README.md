@@ -92,6 +92,14 @@ use redis and have that installed, you can enable that by something like:
 
     ::Geocoder.configure(:cache => Geomash::AutoexpireCacheRedis.new(Redis.new, 86400)) #86400 is the TTL
 
+## Blazegraph integration
+
+TGN can be slow and respond with bad json at times... so support for Blazegraph has been added in this release. To
+enable this, first setup a blazegraph instance with TGN and AAT loaded into it. If you require additional setup help,
+I'll flesh this out if you PM @scande3 on twitter.
+
+Once setup, you need to update the Blazegraph section of the sample config file with the correct settings.
+
 ## Contributing
 
 1. As this is geared for our use case, let me know about your interest in this gem and how you would like it to function.

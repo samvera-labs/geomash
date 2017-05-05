@@ -7,180 +7,23 @@ module Geomash
       return true
     end
 
-=begin
-      81010/nation
-      81175/state
-      81165/region
-      84251/neighborhood
-      83002/inhabited place
-
-      nations
-      <http://vocab.getty.edu/tgn/7012149> <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300128207>
-
-      States (political divisions):
-          <http://vocab.getty.edu/tgn/7007517> <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000776> .
-
-      Counties: (Suffolk - http://vocab.getty.edu/aat/300000771)
-      <http://vocab.getty.edu/tgn/1002923> <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300000771> .
-
-      Neighborhood: (Boston)
-      <http://vocab.getty.edu/tgn/7013445> <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300008347> .
-
-
-      Provinces:
-          http://vocab.getty.edu/aat/300000774
-
-      Departments:
-          http://vocab.getty.edu/aat/300000772
-
-      Governates:
-          http://vocab.getty.edu/aat/300235093
-
-      Territories:
-          http://vocab.getty.edu/aat/300135982
-
-      + http://vocab.getty.edu/resource/getty/search?q=territory&luceneIndex=Brief&indexDataset=AAT&_form=%2Fresource%2Fgetty%2Fsearch
-
-      dependent state:
-                    http://vocab.getty.edu/aat/300387176
-
-
-      union territory:
-                http://vocab.getty.edu/aat/300387122
-
-      national district:
-                   http://vocab.getty.edu/aat/300387081
-
-
-Roxbury:
-http://vocab.getty.edu/tgn/7015002.json
-
-
-
-#South Carolina - http://vocab.getty.edu/tgn/7007712
-
-SELECT ?object_identifier
-WHERE
-{
-  ?x <http://purl.org/dc/elements/1.1/identifier> 7007712 .
-  ?x <http://vocab.getty.edu/ontology#broaderPreferredExtended> ?parent_country .
-  {
-    SELECT ?parent_country ?identifier_country ?aat_place_id
-    WHERE {
-       ?parent_country <http://purl.org/dc/elements/1.1/identifier> ?identifier_country .
-       ?parent_country <http://vocab.getty.edu/ontology#placeTypePreferred> ?aat_place_id .
-       ?parent_country <http://www.w3.org/2000/01/rdf-schema#label> ?country_label .
-    }
-    GROUP BY ?parent_country
-  }
-}
-GROUP BY ?object_identifier
-
-primary_tgn_response = Typhoeus::Request.get("http://vocab.getty.edu/tgn/#{tgn_id}.json")
-
-
-  when 'http://vocab.getty.edu/ontology#placeTypePreferred'
-    place_type_base[:aat_id] = ntriple['Object']['value']
-  when 'http://www.w3.org/2004/02/skos/core#prefLabel'
-    if ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'en'
-      place_type_base[:label_en] = ntriple['Object']['value']
-    else if ntriple['Object']['xml:lang'].blank?
-     place_type_base[:label_default] = ntriple['Object']['value']
-
-
-tgn_main_term_info = {}
-broader_place_type_list = ["http://vocab.getty.edu/tgn/"#{tgn_id}]
-
-primary_tgn_response = Typhoeus::Request.get("http://vocab.getty.edu/download/json", :params=>{:uri=>"http://vocab.getty.edu/tgn/#{tgn_id}.json"})
-as_json_tgn_response = JSON.parse(primary_tgn_response.body)
-
-as_json_tgn_response['results']['bindings'].each do |ntriple|
-  case ntriple['Predicate']['value']
-  when 'http://www.w3.org/2004/02/skos/core#prefLabel'
-    if ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'en'
-      tgn_main_term_info[:label_en] = ntriple['Object']['value']
-    elsif ntriple['Object']['xml:lang'].blank?
-     tgn_main_term_info[:label_default] = ntriple['Object']['value']
+    def self.blazegraph_config
+      Geomash.config[:blazegraph] || ['url', 'tgn_context', 'aat_context']
     end
-  when 'http://vocab.getty.edu/ontology#placeTypePreferred'
-   tgn_main_term_info[:aat_place] = ntriple['Object']['value']
-  when 'http://vocab.getty.edu/ontology#broaderPreferredExtended'
-    broader_place_type_list << ntriple['Object']['value']
-  end
 
-end
+    def self.blazegraph_enabled
+      return self.blazegraph_config[0] != 'url' &&  self.blazegraph_config[0] != 'url'
+    end
 
-query = "SELECT ?identifier_place ?place_label_default ?place_label_en ?aat_pref WHERE {"
+    def self.tgn_from_context
+      return "FROM <#{self.blazegraph_config[1]}>" if self.blazegraph_enabled
+      return ""
+    end
 
-broader_place_type_list.each do |place_uri|
-query += %{{<#{place_uri}> <http://purl.org/dc/elements/1.1/identifier> ?identifier_place .
-        OPTIONAL {<#{place_uri}> <http://www.w3.org/2004/02/skos/core#prefLabel> ?place_label_en
-                 FILTER langMatches( lang(?place_label_en), "en" )
-                 }
-        OPTIONAL {<#{place_uri}> <http://www.w3.org/2004/02/skos/core#prefLabel> ?place_label_default
-                 FILTER langMatches( lang(?place_label_default), "" )
-                 }
-        <#{place_uri}> <http://vocab.getty.edu/ontology#placeTypePreferred> ?aat_pref
-       } UNION
-     }
-end
-
-query = query[0..-12]
-query += ". } GROUP BY ?identifier_place ?place_label_default ?place_label_en ?aat_pref"
-
-tgn_response_for_aat = Typhoeus::Request.get("http://vocab.getty.edu/sparql.json", :params=>{:query=>query})
-as_json_tgn_response_for_aat = JSON.parse(tgn_response_for_aat.body)
-
-as_json_tgn_response_for_aat["results"]["bindings"].each do |aat_response|
-  #aat_response['identifier_place']['value']
-  #aat_response['place_label_default']['value']
-  #....
-end
-
-
-
-
-
-EXAMPLE SPARQL:
-
-    SELECT ?identifier_place ?place_label_default ?place_label_en ?aat_pref
-    WHERE {
-       {<http://vocab.getty.edu/tgn/1000001> <http://purl.org/dc/elements/1.1/identifier> ?identifier_place .
-        OPTIONAL {<http://vocab.getty.edu/tgn/1000001> <http://www.w3.org/2004/02/skos/core#prefLabel> ?place_label_en
-                 FILTER langMatches( lang(?place_label_en), "en" )
-                 }
-        OPTIONAL {<http://vocab.getty.edu/tgn/1000001> <http://www.w3.org/2004/02/skos/core#prefLabel> ?place_label_default
-                 FILTER langMatches( lang(?place_label_default), "" )
-                 }
-        <http://vocab.getty.edu/tgn/1000001> <http://vocab.getty.edu/ontology#placeTypePreferred> ?aat_pref
-       } UNION
-       {<http://vocab.getty.edu/tgn/7012149> <http://purl.org/dc/elements/1.1/identifier> ?identifier_place .
-        OPTIONAL {<http://vocab.getty.edu/tgn/7012149> <http://www.w3.org/2004/02/skos/core#prefLabel> ?place_label_en
-                 FILTER langMatches( lang(?place_label_en), "en" )
-                 }
-        OPTIONAL {<http://vocab.getty.edu/tgn/7012149> <http://www.w3.org/2004/02/skos/core#prefLabel> ?place_label_default
-                 FILTER langMatches( lang(?place_label_default), "" )
-                 }
-       <http://vocab.getty.edu/tgn/7012149> <http://vocab.getty.edu/ontology#placeTypePreferred> ?aat_pref
-       } UNION
-       {<http://vocab.getty.edu/tgn/7029392> <http://purl.org/dc/elements/1.1/identifier> ?identifier_place .
-        OPTIONAL {<http://vocab.getty.edu/tgn/7029392> <http://www.w3.org/2004/02/skos/core#prefLabel> ?place_label_en
-                 FILTER langMatches( lang(?place_label_en), "en" )
-                 }
-        OPTIONAL {<http://vocab.getty.edu/tgn/7029392> <http://www.w3.org/2004/02/skos/core#prefLabel> ?place_label_default
-                 FILTER langMatches( lang(?place_label_default), "" )
-                 }
-       <http://vocab.getty.edu/tgn/7012149> <http://vocab.getty.edu/ontology#placeTypePreferred> ?aat_pref
-       } .
-
-
-    }
-   GROUP BY ?identifier_place ?place_label_default ?place_label_en ?aat_pref
-
-
-
-
-=end
+    def self.aat_from_context
+      return "FROM <#{self.blazegraph_config[2]}>" if self.blazegraph_enabled
+      return ""
+    end
 
     def self.get_tgn_data(tgn_id)
       return nil if Geomash::TGN.tgn_enabled != true
@@ -190,61 +33,35 @@ EXAMPLE SPARQL:
       tgn_main_term_info = {}
       broader_place_type_list = []
 
-      primary_tgn_response = Typhoeus::Request.get("http://vocab.getty.edu/download/json", :params=>{:uri=>"http://vocab.getty.edu/tgn/#{tgn_id}.json"}, :timeout=>500)
+      #Only hit the external service if blazegraph isn't installed
+      unless self.blazegraph_enabled
+        primary_tgn_response = Typhoeus::Request.get("http://vocab.getty.edu/download/json", :params=>{:uri=>"http://vocab.getty.edu/tgn/#{tgn_id}.json"}, :timeout=>500)
 
-      return nil if(primary_tgn_response.response_code == 404) #Couldn't find TGN... FIXME: additional check needed if TGN is down?
+        return nil if(primary_tgn_response.response_code == 404) #Couldn't find TGN... FIXME: additional check needed if TGN is down?
 
-      as_json_tgn_response = JSON.parse(primary_tgn_response.body)
+        as_json_tgn_response = JSON.parse(primary_tgn_response.body)
+      end
+
 
       #There is a bug with some TGN JSON files currently. Example: http://vocab.getty.edu/tgn/7014203.json . Per an email
       # with Getty, this is a hackish workaround for now.
-      if(as_json_tgn_response['results'].blank?)
+      if as_json_tgn_response.nil? || as_json_tgn_response['results'].blank?
         query = %{
-          PREFIX tgn: <http://vocab.getty.edu/tgn/>
-          PREFIX gvp: <http://vocab.getty.edu/ontology#>
-      PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-      PREFIX dct: <http://purl.org/dc/terms/>
-          PREFIX bibo: <http://purl.org/ontology/bibo/>
-          PREFIX skosxl: <http://www.w3.org/2008/05/skos-xl#>
-      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-      PREFIX iso: <http://purl.org/iso25964/skos-thes#>
-      PREFIX foaf: <http://xmlns.com/foaf/0.1/>
-          PREFIX schema: <http://schema.org/>
-          CONSTRUCT {
-            ?s  ?p1 ?o1.
-            ?ac ?p2 ?o2.
-            ?t  ?p3 ?o3.
-            ?ss ?p4 ?o4.
-            ?ts ?p6 ?o6.
-            ?st ?p7 ?o7.
-            ?ar ?p8 ?o8.
-            ?l1 ?p9 ?o9.
-            ?l2 ?pA ?oA.
-            ?pl ?pB ?oB.
-            ?ge ?pC ?oC.
-          } WHERE {
-        BIND (tgn:#{tgn_id} as ?s)
-        {?s ?p1 ?o1 FILTER(!isBlank(?o1) &&
-            !(?p1 in (gvp:narrowerExtended, skos:narrowerTransitive, skos:semanticRelation)))}
-      UNION {?s skos:changeNote ?ac. ?ac ?p2 ?o2}
-      UNION {?s dct:source ?ss. ?ss a bibo:DocumentPart. ?ss ?p4 ?o4}
-      UNION {?s skos:scopeNote|skosxl:prefLabel|skosxl:altLabel ?t.
-                                                                {?t ?p3 ?o3 FILTER(!isBlank(?o3))}
-      UNION {?t dct:source ?ts. ?ts a bibo:DocumentPart. ?ts ?p6 ?o6}}
-      UNION {?st rdf:subject ?s. ?st ?p7 ?o7}
-      UNION {?s skos:member/^rdf:first ?l1. ?l1 ?p9 ?o9}
-      UNION {?s iso:subordinateArray ?ar FILTER NOT EXISTS {?ar skosxl:prefLabel ?t1}.
-                                                    {?ar ?p8 ?o8}
-      UNION {?ar skos:member/^rdf:first ?l2. ?l2 ?pA ?oA}}
-      UNION {?s foaf:focus ?pl.
-      {?pl ?pB ?oB}
-      UNION {?pl schema:geo ?ge. ?ge ?pC ?oC}}
-      }
+          SELECT ?Object ?Predicate #{self.tgn_from_context}
+WHERE
+{
+  <http://vocab.getty.edu/tgn/#{tgn_id}> ?Predicate ?Object
+}
       }
 
         query = query.squish
 
-        primary_tgn_response = Typhoeus::Request.get("http://vocab.getty.edu/sparql.json", :body=>{:query=>query}, :timeout=>500)
+        if self.blazegraph_enabled
+          primary_tgn_response = Typhoeus::Request.post(self.blazegraph_config[0], :body=>{:query=>query}, :timeout=>500, headers: { Accept: "application/sparql-results+json" })
+        else
+          primary_tgn_response = Typhoeus::Request.get("http://vocab.getty.edu/sparql.json", :body=>{:query=>query}, :timeout=>500)
+        end
+
         as_json_tgn_response = JSON.parse(primary_tgn_response.body)
       end
 
@@ -335,7 +152,22 @@ EXAMPLE SPARQL:
             aat_main_term_info = {}
             label_remaining_check = false
 
-            aat_type_response = Typhoeus::Request.get("http://vocab.getty.edu/download/json", :params=>{:uri=>"http://vocab.getty.edu/aat/#{tgn_term_type}.json"}, :timeout=>500)
+            if self.blazegraph_enabled
+              query = %{
+          SELECT ?Object ?Predicate #{self.aat_from_context}
+WHERE
+{
+  <http://vocab.getty.edu/aat/#{tgn_term_type}> ?Object ?Predicate
+}
+      }
+
+              query = query.squish
+              aat_type_response = Typhoeus::Request.post(self.blazegraph_config[0], :body=>{:query=>query}, :timeout=>500, headers: { Accept: "application/sparql-results+json" })
+            else
+              aat_type_response = Typhoeus::Request.get("http://vocab.getty.edu/download/json", :params=>{:uri=>"http://vocab.getty.edu/aat/#{tgn_term_type}.json"}, :timeout=>500)
+            end
+
+
             JSON.parse(aat_type_response.body)['results']['bindings'].each do |ntriple|
               case ntriple['Predicate']['value']
                 when 'http://www.w3.org/2004/02/skos/core#prefLabel'
@@ -387,7 +219,7 @@ EXAMPLE SPARQL:
         #Broader places
         #FIXME: could parse xml:lang instead of the three optional clauses now... didn't expect places to lack a default preferred label.
         if broader_place_type_list.present? #Case of World... top of hierachy check
-          query = "SELECT ?identifier_place ?place_label_default ?place_label_en ?aat_pref ?place_label_latn_pinyin WHERE {"
+          query = "SELECT ?identifier_place ?place_label_default ?place_label_en ?aat_pref ?place_label_latn_pinyin #{self.aat_from_context} WHERE {"
 
           broader_place_type_list.each do |place_uri|
             query += %{{<#{place_uri}> <http://purl.org/dc/elements/1.1/identifier> ?identifier_place .
@@ -409,7 +241,13 @@ EXAMPLE SPARQL:
           query += ". } GROUP BY ?identifier_place ?place_label_default ?place_label_en ?place_label_latn_pinyin ?aat_pref"
           query = query.squish
 
-          tgn_response_for_aat = Typhoeus::Request.post("http://vocab.getty.edu/sparql.json", :body=>{:query=>query}, :timeout=>500)
+          if self.blazegraph_enabled
+            tgn_response_for_aat = Typhoeus::Request.post(self.blazegraph_config[0], :body=>{:query=>query}, :timeout=>500, headers: { Accept: "application/sparql-results+json" })
+          else
+            tgn_response_for_aat = Typhoeus::Request.post("http://vocab.getty.edu/sparql.json", :body=>{:query=>query}, :timeout=>500)
+          end
+
+
           as_json_tgn_response_for_aat = JSON.parse(tgn_response_for_aat.body)
 
           as_json_tgn_response_for_aat["results"]["bindings"].each do |aat_response|
@@ -426,7 +264,23 @@ EXAMPLE SPARQL:
               tgn_term = aat_response['place_label_latn_notone']['value']
             else
               #Just take the first prefLabel... could perhaps do some preference eventually... see 7002883 for an example of only a french prefLabel
-              default_label_response = Typhoeus::Request.get("http://vocab.getty.edu/download/json", :params=>{:uri=>"http://vocab.getty.edu/tgn/#{aat_response['identifier_place']['value']}.json"}, :timeout=>500)
+
+              if self.blazegraph_enabled
+                query = %{
+          SELECT ?Object ?Predicate #{self.tgn_from_context}
+WHERE
+{
+  <http://vocab.getty.edu/tgn/#{aat_response['identifier_place']['value']}> ?Object ?Predicate
+}
+      }
+
+                query = query.squish
+                aat_type_response = Typhoeus::Request.post(self.blazegraph_config[0], :body=>{:query=>query}, :timeout=>500, headers: { Accept: "application/sparql-results+json" })
+              else
+                default_label_response = Typhoeus::Request.get("http://vocab.getty.edu/download/json", :params=>{:uri=>"http://vocab.getty.edu/tgn/#{aat_response['identifier_place']['value']}.json"}, :timeout=>500)
+              end
+
+
               JSON.parse(default_label_response.body)['results']['bindings'].each do |ntriple|
                 case ntriple['Predicate']['value']
                   when 'http://www.w3.org/2004/02/skos/core#prefLabel'
@@ -533,7 +387,7 @@ EXAMPLE SPARQL:
 
         #First we get county!!
 
-        query = %{SELECT ?object_identifier
+        query = %{SELECT ?object_identifier #{self.tgn_from_context}
 WHERE
 {
   ?x <http://purl.org/dc/elements/1.1/identifier> ?object_identifier .
@@ -552,7 +406,7 @@ WHERE
 
         #United State state query
         if state_part.present? && country_code == 7012149 && !web_request_error
-          query = %{SELECT ?object_identifier
+          query = %{SELECT ?object_identifier #{self.tgn_from_context}
 WHERE
 {
   ?x <http://purl.org/dc/elements/1.1/identifier> ?object_identifier .
@@ -581,7 +435,7 @@ WHERE
         #Note: Had to remove   {?x <http://vocab.getty.edu/ontology#placeTypePreferred> <http://vocab.getty.edu/aat/300008347>} UNION as it returned two results
         #for "15. Bezirk (Rudolfsheim-Fünfhaus, Vienna, Austria)--Exhibitions". Correct or not?
         if state_part.present? && country_code != 7012149 && !web_request_error
-          query = %{SELECT ?object_identifier
+          query = %{SELECT ?object_identifier #{self.tgn_from_context}
 WHERE
 {
   ?x <http://purl.org/dc/elements/1.1/identifier> ?object_identifier .
@@ -616,7 +470,7 @@ GROUP BY ?object_identifier
 
         #Do prefLabel first and then do just label... needed for case of Newton vs Newtown in MA (Newtown has an altlabel of Newton)
         if states_response[:id].present? && city_part.present? && !web_request_error
-          query = %{SELECT ?object_identifier
+          query = %{SELECT ?object_identifier #{self.tgn_from_context}
 WHERE
 {
   ?x <http://purl.org/dc/elements/1.1/identifier> ?object_identifier .
@@ -631,7 +485,7 @@ GROUP BY ?object_identifier
 
           cities_response = self.tgn_sparql_request(query)
           if cities_response[:id].blank? && !cities_response[:errors]
-            query = %{SELECT ?object_identifier
+            query = %{SELECT ?object_identifier #{self.tgn_from_context}
 WHERE
 {
   ?x <http://purl.org/dc/elements/1.1/identifier> ?object_identifier .
@@ -660,7 +514,7 @@ GROUP BY ?object_identifier
 
         #Case of Countries without a state breakdown... ie. Tokyo, Japan
         if state_part.blank? && country_response[:id].present? && city_part.present? && !web_request_error
-          query = %{SELECT ?object_identifier
+          query = %{SELECT ?object_identifier #{self.tgn_from_context}
 WHERE
 {
   ?x <http://purl.org/dc/elements/1.1/identifier> ?object_identifier .
@@ -684,7 +538,7 @@ GROUP BY ?object_identifier
         end
 
       if cities_response[:id].present? && neighborhood_part.present? && !web_request_error
-        query = %{SELECT ?object_identifier
+        query = %{SELECT ?object_identifier #{self.tgn_from_context}
 WHERE
 {
   ?x <http://purl.org/dc/elements/1.1/identifier> ?object_identifier .
@@ -701,7 +555,7 @@ GROUP BY ?object_identifier
 
         #Try once more on just prefLabel with no city restriction and inhabited places type added...
         if neighborhood_response[:id].blank? && !neighborhood_response[:errors]
-          query = %{SELECT ?object_identifier
+          query = %{SELECT ?object_identifier #{self.tgn_from_context}
 WHERE
 {
   ?x <http://purl.org/dc/elements/1.1/identifier> ?object_identifier .
@@ -742,10 +596,14 @@ GROUP BY ?object_identifier
       def self.tgn_sparql_request(query,method="GET")
         response = {}
         query = query.squish
-        if(method=="GET")
-          tgn_response = Typhoeus::Request.get("http://vocab.getty.edu/sparql.json", :params=>{:query=>query}, :timeout=>500)
+        if self.blazegraph_enabled
+          tgn_response = Typhoeus::Request.post(self.blazegraph_config[0], :body=>{:query=>query}, :timeout=>500, headers: { Accept: "application/sparql-results+json" })
         else
-          tgn_response = Typhoeus::Request.post("http://vocab.getty.edu/sparql.json", :params=>{:query=>query}, :timeout=>500)
+          if(method=="GET")
+            tgn_response = Typhoeus::Request.get("http://vocab.getty.edu/sparql.json", :params=>{:query=>query}, :timeout=>500)
+          else
+            tgn_response = Typhoeus::Request.post("http://vocab.getty.edu/sparql.json", :params=>{:query=>query}, :timeout=>500)
+          end
         end
 
         if tgn_response.success? && tgn_response.code == 200

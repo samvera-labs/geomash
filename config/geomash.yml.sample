@@ -14,6 +14,10 @@ development:
     - channel
   timeout: 7
   parser_cache_enabled: false #See Readme before enabling this
+  blazegraph: #See README
+    - url
+    - tgn_context
+    - aat_context
 test: &TEST_
   tgn_enabled: true
   geonames_username: <username>
@@ -30,6 +34,10 @@ test: &TEST_
     - channel
   timeout: 7
   parser_cache_enabled: false #See Readme before enabling this
+  blazegraph: #See README
+    - url
+    - tgn_context
+    - aat_context
 production:
   tgn_enabled: true
   geonames_username: <username>
@@ -46,3 +54,7 @@ production:
     - channel
   timeout: 7
   parser_cache_enabled: false #See Readme before enabling this
+  blazegraph: #See README
+    - url
+    - tgn_context
+    - aat_context
