@@ -75,7 +75,7 @@ Most of the LCSH functions are in: Geomash::LCSH.
 
 Most of the Geonames functions are in: Geomash::Geonames
 
-## Caching
+## Optional Caching
 
 You can enable caching of your requests to reduce the amount of HTTP requests you make and avoid hitting query limits.
 This is configured by the following YML setting:
@@ -92,13 +92,17 @@ use redis and have that installed, you can enable that by something like:
 
     ::Geocoder.configure(:cache => Geomash::AutoexpireCacheRedis.new(Redis.new, 86400)) #86400 is the TTL
 
-## Blazegraph integration
+## Optional Blazegraph integration
 
-TGN can be slow and respond with bad json at times... so support for Blazegraph has been added in this release. To
-enable this, first setup a blazegraph instance with TGN and AAT loaded into it. For instructions on this, see:
+TGN can be slow and respond with bad json at times... so support for Blazegraph has been added and may work with
+marmotta (untested). To enable this, first setup a blazegraph instance with TGN and AAT loaded into it. For instructions 
+on this, see:
 [https://github.com/projecthydra-labs/geomash/wiki/Blazegraph-Setup](https://github.com/projecthydra-labs/geomash/wiki/Blazegraph-Setup)
 
-Once setup, you need to update the Blazegraph section of the sample config file with the correct settings.
+Once setup, you need to update the Blazegraph section of the sample config file with the correct settings. The "url" refers
+to the sparql endpoint (ie. http://localhost:8988/blazegraph/sparql). The contexts refer to whatever uri you loaded your
+TGN and AAT vocabularies under. Examples might be: http://vocab.getty.edu/tgn and http://vocab.getty.edu/aat for those 
+two settings.
 
 ## Contributing
 
