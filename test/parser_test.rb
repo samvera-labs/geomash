@@ -6,7 +6,7 @@ class ParserTest < ActiveSupport::TestCase
     assert_equal 'Boston', result[:city_part]
     assert_equal 'Massachusetts', result[:state_part]
     assert_equal 'United States', result[:country_part]
-    assert_equal nil, result[:street_part]
+    assert_nil result[:street_part]
 
     result = Geomash::Parser.parse_google_api('700 Boylston St, Boston, MA 02116')
     assert_equal 'Boston', result[:city_part]
@@ -18,14 +18,14 @@ class ParserTest < ActiveSupport::TestCase
     assert_equal 'Massachusetts', result[:state_part]
     assert_equal 'United States', result[:country_part]
     assert_equal 'Roxbury', result[:neighborhood_part]
-    assert_equal nil, result[:street_part]
+    assert_nil result[:street_part]
 
     result = Geomash::Parser.parse_google_api('Macedonia')
-    assert_equal nil, result[:city_part]
-    assert_equal nil, result[:state_part]
+    assert_nil result[:city_part]
+    assert_nil result[:state_part]
     assert_equal 'Macedonia', result[:country_part]
-    assert_equal nil, result[:neighborhood_part]
-    assert_equal nil, result[:street_part]
+    assert_nil result[:neighborhood_part]
+    assert_nil result[:street_part]
 
 
     #FIXME!!!  Is this alright?

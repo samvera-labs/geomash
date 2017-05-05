@@ -236,6 +236,9 @@ module Geomash
           term = term.split(',')[1..term.split(',').length-1].join(',').strip
           google_api_result = Geocoder.search(term)
         end
+      elsif google_api_result.blank? and term.split(",").length >= 3
+        term = term.split(',')[1..term.split(',').length-1].join(',').strip
+        google_api_result = Geocoder.search(term)
       end
 
 
@@ -279,7 +282,7 @@ module Geomash
             #gsub to fix a case of "Macedonia" returning "Macedonia (FYROM)"
             return_hash[:country_part] = result['long_name'].gsub(/ \(.+\)$/, '')
           elsif (result['types'] & ['administrative_area_level_1']).present?
-            return_hash[:state_part] = result['long_name'].to_ascii.gsub('-city', '')
+            return_hash[:state_part] = result['long_name'].to_ascii.gsub('-city', '').gsub(' City Province', '') #second gsub fix Sofia, Bulgaria test example
           elsif (result['types'] & ['locality']).present?
             return_hash[:city_part] = result['long_name']
           elsif (result['types'] & ['sublocality', 'political']).length == 2
