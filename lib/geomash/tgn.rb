@@ -221,7 +221,7 @@ WHERE
         #Broader places
         #FIXME: could parse xml:lang instead of the three optional clauses now... didn't expect places to lack a default preferred label.
         if broader_place_type_list.present? #Case of World... top of hierachy check
-          query = "SELECT ?identifier_place ?place_label_default ?place_label_en ?aat_pref ?place_label_latn_pinyin #{self.aat_from_context} WHERE {"
+          query = "SELECT ?identifier_place ?place_label_default ?place_label_en ?aat_pref ?place_label_latn_pinyin #{self.aat_from_context}  #{self.tgn_from_context} WHERE {"
 
           broader_place_type_list.each do |place_uri|
             query += %{{<#{place_uri}> <http://purl.org/dc/elements/1.1/identifier> ?identifier_place .
