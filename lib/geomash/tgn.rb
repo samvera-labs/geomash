@@ -50,7 +50,9 @@ module Geomash
           SELECT ?Object ?Predicate #{self.tgn_from_context}
 WHERE
 {
-  <http://vocab.getty.edu/tgn/#{tgn_id}> ?Predicate ?Object
+  { <http://vocab.getty.edu/tgn/#{tgn_id}> ?Predicate ?Object }
+  UNION
+  { <http://vocab.getty.edu/tgn/#{tgn_id}-geometry> ?Predicate ?Object }
 }
       }
 
