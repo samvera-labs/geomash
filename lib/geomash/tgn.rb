@@ -114,7 +114,9 @@ WHERE
       tgn_term ||= tgn_main_term_info[:label_alt]
       tgn_term ||= tgn_main_term_info[:label_remaining]
 
-      tgn_term_type = tgn_main_term_info[:aat_place].split('/').last
+      tgn_term_type = if tgn_main_term_info[:aat_place]
+                        tgn_main_term_info[:aat_place].split('/').last
+                      end
 
       #Initial Term
       if tgn_term.present? && tgn_term_type.present?
@@ -277,7 +279,7 @@ WHERE
       }
 
                 query = query.squish
-                aat_type_response = Typhoeus::Request.post(self.blazegraph_config[0], :body=>{:query=>query}, :timeout=>500, headers: { Accept: "application/sparql-results+json" })
+                default_label_response = Typhoeus::Request.post(self.blazegraph_config[0], :body=>{:query=>query}, :timeout=>500, headers: { Accept: "application/sparql-results+json" })
               else
                 default_label_response = Typhoeus::Request.get("http://vocab.getty.edu/download/json", :params=>{:uri=>"http://vocab.getty.edu/tgn/#{aat_response['identifier_place']['value']}.json"}, :timeout=>500)
               end
