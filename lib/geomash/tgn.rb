@@ -159,7 +159,7 @@ WHERE
           SELECT ?Object ?Predicate #{self.aat_from_context}
 WHERE
 {
-  <http://vocab.getty.edu/aat/#{tgn_term_type}> ?Object ?Predicate
+  <http://vocab.getty.edu/aat/#{tgn_term_type}> ?Predicate ?Object
 }
       }
 
@@ -272,7 +272,7 @@ WHERE
           SELECT ?Object ?Predicate #{self.tgn_from_context}
 WHERE
 {
-  <http://vocab.getty.edu/tgn/#{aat_response['identifier_place']['value']}> ?Object ?Predicate
+  <http://vocab.getty.edu/tgn/#{aat_response['identifier_place']['value']}> ?Predicate ?Object
 }
       }
 

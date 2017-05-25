@@ -37,6 +37,19 @@ class TGNTest < ActiveSupport::TestCase
        assert_equal 'Europe', result[:hier_geo][:continent]
        assert_equal nil, result[:non_hier_geo][:value]
        assert_nil result[:non_hier_geo][:qualifier]
+
+       result = Geomash::TGN.get_tgn_data('7013534')
+       assert_equal '28.45', result[:coords][:latitude]
+       assert_equal '-80.5333', result[:coords][:longitude]
+       assert_equal '28.45,-80.5333', result[:coords][:combined]
+       assert_equal 'Brevard', result[:hier_geo][:county]
+       assert_equal 'Florida', result[:hier_geo][:state]
+       assert_equal 'United States', result[:hier_geo][:country]
+       assert_equal 'North and Central America', result[:hier_geo][:continent]
+       assert_equal 'Canaveral, Cape', result[:non_hier_geo][:value]
+       assert_nil result[:non_hier_geo][:qualifier]
+
+
     end
   end
 end
