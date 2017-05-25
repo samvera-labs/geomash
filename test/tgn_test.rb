@@ -49,6 +49,8 @@ class TGNTest < ActiveSupport::TestCase
        assert_equal 'Canaveral, Cape', result[:non_hier_geo][:value]
        assert_nil result[:non_hier_geo][:qualifier]
 
+       result = Geomash::TGN.get_tgn_data('invalid_identifier')
+       assert_nil result
 
     end
   end
