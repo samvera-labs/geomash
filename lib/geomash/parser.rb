@@ -278,7 +278,8 @@ module Geomash
             return_hash[:coords] = {:latitude=>google_api_result[best_match_index].data['geometry']['location']['lat'].to_s,
                                          :longitude=>google_api_result[best_match_index].data['geometry']['location']['lng'].to_s,
                                          :combined=>google_api_result[best_match_index].data['geometry']['location']['lat'].to_s + ',' + google_api_result[best_match_index].data['geometry']['location']['lng'].to_s}
-          elsif (result['types'] & ['country']).present?
+          end
+          if (result['types'] & ['country']).present?
             #gsub to fix a case of "Macedonia" returning "Macedonia (FYROM)"
             return_hash[:country_part] = result['long_name'].gsub(/ \(.+\)$/, '')
           elsif (result['types'] & ['administrative_area_level_1']).present?

@@ -10,6 +10,17 @@ require 'test_helper'
 class GeomashTest < ActiveSupport::TestCase
 
   def test_parse_with_flag
+    result = Geomash.parse('Cranberry industry--Massachusetts--History', true)
+    assert_nil result[:city_part]
+    assert_equal 'Massachusetts', result[:state_part]
+    assert_equal 'United States', result[:country_part]
+    assert_nil result[:neighborhood_part]
+    assert_nil result[:street_part]
+    assert_equal '7007517', result[:tgn][:id] if Geomash::TGN.tgn_enabled == true
+    assert_equal true, result[:tgn][:original_string_differs] if Geomash::TGN.tgn_enabled == true
+    assert_equal '6254926', result[:geonames][:id] if Geomash::Geonames.geonames_username != '<username>'
+    assert_equal true, result[:geonames][:original_string_differs] if Geomash::Geonames.geonames_username != '<username>'
+
     result = Geomash.parse('Massachusetts &gt; Hampden (county) &gt; Chicopee', true)
     assert_equal 'Chicopee', result[:city_part]
     assert_equal 'Massachusetts', result[:state_part]
@@ -44,16 +55,16 @@ class GeomashTest < ActiveSupport::TestCase
     assert_equal '2779138', result[:geonames][:id] if Geomash::Geonames.geonames_username != '<username>'
     assert_equal true, result[:geonames][:original_string_differs] if Geomash::Geonames.geonames_username != '<username>'
 
-
+    #FIXME: TGN doesn't get the state part
     result = Geomash.parse('Synagogues--Germany--Baden-Württemberg--Directories', true)
     assert_nil result[:city_part]
-    assert_nil result[:state_part] #assert_equal 'Baden-Wurttemberg', result[:state_part]
+    assert_equal 'Baden-Wurttemberg', result[:state_part] #assert_equal 'Baden-Wurttemberg', result[:state_part]
     assert_equal 'Germany', result[:country_part]
     assert_nil result[:neighborhood_part]
     assert_nil result[:street_part]
     assert_equal '7000084', result[:tgn][:id] if Geomash::TGN.tgn_enabled == true #'7003692'
     assert_equal true, result[:tgn][:original_string_differs] if Geomash::TGN.tgn_enabled == true
-    assert_equal '2921044', result[:geonames][:id] if Geomash::Geonames.geonames_username != '<username>' #2953481
+    assert_equal '2953481', result[:geonames][:id] if Geomash::Geonames.geonames_username != '<username>' #2953481
     assert_equal true, result[:geonames][:original_string_differs] if Geomash::Geonames.geonames_username != '<username>'
 
     result = Geomash.parse('Naroden Etnografski Muzeĭ (Sofia, Bulgaria)--Catalogs', true)
@@ -175,14 +186,15 @@ class GeomashTest < ActiveSupport::TestCase
 
     #Case of a country with no states
     # Actual TGN is 7004472 and actual Geonames is 1850147. Only does the Country right now...
+    #FIXME: TGN still doesn't get Tokyo and why is original string differs true for geonames?
     result = Geomash.parse('Tokyo, Japan')
     assert_nil result[:city_part]
-    assert_nil result[:state_part]
+    assert_equal 'Tokyo', result[:state_part]
     assert_equal 'Japan', result[:country_part]
     assert_nil result[:neighborhood_part]
     assert_equal '1000120', result[:tgn][:id] if Geomash::TGN.tgn_enabled == true
     assert_equal true, result[:tgn][:original_string_differs] if Geomash::TGN.tgn_enabled == true
-    assert_equal '1861060', result[:geonames][:id] if Geomash::Geonames.geonames_username != '<username>'
+    assert_equal '1850147', result[:geonames][:id] if Geomash::Geonames.geonames_username != '<username>'
     assert_equal true, result[:geonames][:original_string_differs] if Geomash::Geonames.geonames_username != '<username>'
 
     #Should find the Michigan Atlanta over the Georgia Atlanta
