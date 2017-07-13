@@ -293,11 +293,13 @@ WHERE
                     else
                       tgn_term ||= ntriple['Object']['value']
                     end
+                  when 'http://www.w3.org/2000/01/rdf-schema#label'
+                    tgn_term ||= ntriple['Object']['value']
                 end
               end
 
               if tgn_term.blank?
-                raise "Could not find a label for broader: #{place_uri} of base term: #{tgn_id}"
+                raise "Could not find a label for broader term: #{aat_response['identifier_place']['value']} of base term: #{tgn_id}"
               end
 
             end
