@@ -23,7 +23,7 @@ class ParserTest < ActiveSupport::TestCase
     result = Geomash::Parser.parse_google_api('Macedonia')
     assert_nil result[:city_part]
     assert_nil result[:state_part]
-    assert_equal 'Macedonia', result[:country_part]
+    assert_equal 'North Macedonia', result[:country_part]
     assert_nil result[:neighborhood_part]
     assert_nil result[:street_part]
 

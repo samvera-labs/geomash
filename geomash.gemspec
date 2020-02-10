@@ -19,7 +19,7 @@ Gem::Specification.new do |s|
   s.add_dependency "activesupport"
   s.add_dependency "countries", '>=2.0.0'
   s.add_dependency "geocoder"
-  s.add_dependency 'unidecoder'
+  s.add_dependency 'stringex'
   s.add_dependency 'typhoeus'
   s.add_dependency 'nokogiri'
   s.add_dependency 'htmlentities'
