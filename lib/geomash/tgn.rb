@@ -361,10 +361,8 @@ WHERE
       retry_count = 0
 
       return_hash = {}
-      country_response = {}
       states_response = {}
       cities_response = {}
-      neighboorhood_response = {}
 
       state_part = geo_hash[:state_part]
       #FIXME: In TGN, Ho Chi Minh doesn't have an ASCII label... unsure what to do in this case... maybe a synonyms file?

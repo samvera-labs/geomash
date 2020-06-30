@@ -9,7 +9,7 @@ module Geomash
   require "geomash/autoexpire_cache_redis"
   require "geocoder"
   require "countries"
-  require "unidecoder"
+  require "stringex"
   require "typhoeus"
   require "nokogiri"
   require "htmlentities"

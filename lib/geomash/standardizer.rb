@@ -11,7 +11,7 @@ module Geomash
         return ''
       end
 
-      term_split_list = term.split(/[,\-\(\(>]|&gt;/).reject{ |e| e.empty? }
+      term_split_list = term.split(/[,\-(>]|&gt;/).reject{ |e| e.empty? }
       term_split_list.each{ |e| e.gsub!(/[^\w\s]/, "") } #Remove punctuation
       term_split_list.each{ |e| e.strip! } #Remove any extra remaining whitespace
       term_split_list.reject{ |e| e.empty? }

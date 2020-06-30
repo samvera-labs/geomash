@@ -165,7 +165,6 @@ module Geomash
       return return_hash if return_hash.present?
 
       return nil
-
-      end
+    end
   end
 end

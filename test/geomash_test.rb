@@ -17,9 +17,9 @@ class GeomashTest < ActiveSupport::TestCase
     assert_nil result[:neighborhood_part]
     assert_nil result[:street_part]
     assert_equal '7007517', result[:tgn][:id] if Geomash::TGN.tgn_enabled == true
-    assert_equal true, result[:tgn][:original_string_differs] if Geomash::TGN.tgn_enabled == true
+    assert_equal false, result[:tgn][:original_string_differs] if Geomash::TGN.tgn_enabled == true
     assert_equal '6254926', result[:geonames][:id] if Geomash::Geonames.geonames_username != '<username>'
-    assert_equal true, result[:geonames][:original_string_differs] if Geomash::Geonames.geonames_username != '<username>'
+    assert_equal false, result[:geonames][:original_string_differs] if Geomash::Geonames.geonames_username != '<username>'
 
     result = Geomash.parse('Massachusetts &gt; Hampden (county) &gt; Chicopee', true)
     assert_equal 'Chicopee', result[:city_part]
@@ -179,7 +179,7 @@ class GeomashTest < ActiveSupport::TestCase
     assert_equal 'Boston', result[:city_part]
     assert_equal 'Massachusetts', result[:state_part]
     assert_equal 'United States', result[:country_part]
-    assert_equal 'Fenway/Kenmore', result[:neighborhood_part]
+    assert_equal 'Fenway–Kenmore', result[:neighborhood_part]
     assert_equal '7013445', result[:tgn][:id] if Geomash::TGN.tgn_enabled == true
     assert_nil result[:street_part]
     assert_equal true, result[:tgn][:original_string_differs] if Geomash::TGN.tgn_enabled == true
