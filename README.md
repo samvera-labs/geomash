@@ -95,16 +95,22 @@ use redis and have that installed, you can enable that by something like:
 ## Optional Blazegraph integration
 
 TGN can be slow and respond with bad json at times... so support for Blazegraph has been added and may work with
-marmotta (untested). To enable this, first setup a blazegraph instance with TGN and AAT loaded into it. For instructions 
+marmotta (untested). To enable this, first setup a blazegraph instance with TGN and AAT loaded into it. For instructions
 on this, see:
 [https://github.com/projecthydra-labs/geomash/wiki/Blazegraph-Setup](https://github.com/projecthydra-labs/geomash/wiki/Blazegraph-Setup)
 
 Once setup, you need to update the Blazegraph section of the sample config file with the correct settings. The "url" refers
 to the sparql endpoint (ie. http://localhost:8988/blazegraph/sparql). The contexts refer to whatever uri you loaded your
-TGN and AAT vocabularies under. Examples might be: http://vocab.getty.edu/tgn and http://vocab.getty.edu/aat for those 
+TGN and AAT vocabularies under. Examples might be: http://vocab.getty.edu/tgn and http://vocab.getty.edu/aat for those
 two settings.
 
 ## Contributing
+
+If you're working on PR for this project, create a feature branch off of `main`.
+
+This repository follows the [Samvera Community Code of Conduct](https://samvera.atlassian.net/wiki/spaces/samvera/pages/405212316/Code+of+Conduct) and [language recommendations](https://github.com/samvera/maintenance/blob/master/templates/CONTRIBUTING.md#language).  Please ***do not*** create a branch called `master` for this repository or as part of your pull request; the branch will either need to be removed or renamed before it can be considered for inclusion in the code base and history of this repository.
+
+### Steps
 
 1. As this is geared for our use case, let me know about your interest in this gem and how you would like it to function.
 2. Fork it
