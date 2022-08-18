@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
+# frozen_string_literal: true
+
 module Geomash
   class Standardizer
-
+    MAX_TERM_LENGTH = 125
     #Take a subject string and look for potential geographic terms.
     def self.parse_for_geographic_term(term)
-      geo_term = ''
+      geo_term = +''
 
       #Likely too long to be an address... some fields have junk with an address string...
-      if term.length > 125
-        return ''
-      end
+      return '' if term.length > MAX_TERM_LENGTH
 
       term_split_list = term.split(/[,\-(>]|&gt;/).reject{ |e| e.empty? }
       term_split_list.each{ |e| e.gsub!(/[^\w\s]/, "") } #Remove punctuation
@@ -21,15 +21,15 @@ module Geomash
 
       #Countries gem of https://github.com/hexorx/countries
       ISO3166::Country.new('US').states.each do |state_abbr, state_names|
-        state_abbr_list << ' ' + state_abbr
-        state_name_list << state_names["name"]
+        state_abbr_list << " #{state_abbr}"
+        state_name_list << state_names['name']
       end
 
       ISO3166::Country.all.each do |country_name_hash|
         #country_name_list << country_name_abbr_pair.first
-        country_name_list << country_name_hash.data["name"] if country_name_hash.data["name"].present?
-        if country_name_hash.data["unofficial_names"].present?
-          country_name_hash.data["unofficial_names"].each do |name|
+        country_name_list << country_name_hash.data['name'] if country_name_hash.data['name'].present?
+        if country_name_hash.data['unofficial_names'].present?
+          country_name_hash.data['unofficial_names'].each do |name|
             country_name_list << name
           end
         end
@@ -86,7 +86,7 @@ module Geomash
     #Make a string in a standard format.
     def self.standardize_geographic_term(geo_term)
 
-      geo_term = geo_term.clone #Don't change original
+      geo_term = geo_term.clone # Don't change original
 
       #Remove common junk terms
       Geomash::Constants::JUNK_TERMS.each { |term| geo_term.gsub!(term, '') }
@@ -125,7 +125,7 @@ module Geomash
 
       geo_term = geo_term.squeeze(',') #This may no longer bee needed wih th the above
 
-      return geo_term
+      geo_term
     end
 
     #Attempt to dedup a list of geographic areas.
@@ -183,33 +183,29 @@ module Geomash
         geo_list[removal_index] = nil
       end
 
-      return geo_list.compact
+      geo_list.compact
     end
 
     def self.parsed_and_original_check(geo_hash)
       term = geo_hash[:standardized_term]
 
-      if geo_hash[:street_part].present? || geo_hash[:coords].present?
-        return true
-      end
+      return true if geo_hash[:street_part].present? || geo_hash[:coords].present?
 
       #Keep original string if three parts at least or if there is a number in the term.
       #TODO: Make this better!
       #Note: Counties can cause this first length check to fail. For now, adding a check for county word but temporary solution...
-      if (term.split(',').length >= 4 && geo_hash[:neighborhood_part].blank?) || (term.split(',').length >= 3 && geo_hash[:neighborhood_part].blank? && !geo_hash[:original_term].match(/[Cc]ounty/)) || (term.split(',').length >= 2 && geo_hash[:city_part].blank?) || term.split(',').length >= 4 || term.match(/\d/).present?
-        return true
-      end
+      return true if (term.split(',').length >= 4 && geo_hash[:neighborhood_part].blank?) || (term.split(',').length >= 3 && geo_hash[:neighborhood_part].blank? && !geo_hash[:original_term].match(/[Cc]ounty/)) || (term.split(',').length >= 2 && geo_hash[:city_part].blank?) || term.split(',').length >= 4 || term.match(/\d/).present?
 
       if geo_hash[:country_part] != 'United States'
         if geo_hash[:city_part].blank? && geo_hash[:state_part].blank?
           #Currently do noting
         elsif !((geo_hash[:city_part].present? && term.to_ascii.downcase.include?(geo_hash[:city_part].to_ascii.downcase)) || (geo_hash[:state_part].present? && term.to_ascii.downcase.include?(geo_hash[:state_part].to_ascii.downcase)))
-         return true
+          return true
         end
       end
 
 
-      return false
+      false
     end
 
 
@@ -243,25 +239,22 @@ module Geomash
       #Strip any white space
       value = strip_value(value)
 
-      return value
+      value
     end
 
     def self.strip_value(value)
-      if(value.blank?)
-        return nil
-      else
-        if value.class == Float || value.class == Fixnum
-          value = value.to_i.to_s
-        end
+      return if value.blank?
 
-        # Make sure it is all UTF-8 and not character encodings or HTML tags and remove any cariage returns
-        return utf8Encode(value)
-      end
+      value = value.to_i.to_s if value.class == Float || value.class == Fixnum
+
+
+      # Make sure it is all UTF-8 and not character encodings or HTML tags and remove any cariage returns
+      utf8Encode(value)
     end
 
     #TODO: Better name for this. Should be part of an overall helped gem.
     def self.utf8Encode(value)
-      return HTMLEntities.new.decode(ActionView::Base.full_sanitizer.sanitize(value.to_s.gsub(/\r?\n?\t/, ' ').gsub(/\r?\n/, ' ').gsub(/<br[\s]*\/>/,' '))).strip
+      HTMLEntities.new.decode(ActionView::Base.full_sanitizer.sanitize(value.to_s.gsub(/\r?\n?\t/, ' ').gsub(/\r?\n/, ' ').gsub(/<br[\s]*\/>/,' '))).strip
     end
 
 
@@ -287,8 +280,7 @@ module Geomash
         return geo_hash_local
       end
 
-      return nil
+      nil
     end
-
   end
 end

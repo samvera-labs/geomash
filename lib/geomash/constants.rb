@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Geomash
   class Constants
     COUNTRY_TGN_LOOKUP = {}

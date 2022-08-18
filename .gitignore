@@ -48,6 +48,7 @@ Icon?
 ehthumbs.db
 .idea # Rubymine config files
 /.idea/*
+.ruby-version
 Gemfile.lock
 
 # Directories to ignore #

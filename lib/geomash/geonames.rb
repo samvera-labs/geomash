@@ -1,6 +1,5 @@
 module Geomash
   class Geonames
-
     def self.geonames_username
       Geomash.config[:geonames_username] || '<username>'
     end

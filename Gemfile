@@ -1,4 +1,6 @@
-source "https://rubygems.org"
+# frozen_string_literal: true
+
+source 'https://rubygems.org'
 
 # Declare your gem's dependencies in bplgeo.gemspec.
 # Bundler will treat runtime dependencies like base dependencies, and
@@ -13,3 +15,7 @@ gemspec
 
 # To use debugger
 # gem 'debugger'
+
+group :development, :test do
+  gem 'pry'
+end

@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
+# frozen_string_literal: true
+
 module Geomash
   class TGN
+    GETTY_TGN_HEADERS = {
+      'Accept-Profile': 'Accept-Profile: <http://www.w3.org/2004/02/skos/core#>'
+    }.freeze
 
     def self.tgn_enabled
-      return Geomash.config[:tgn_enabled] unless Geomash.config[:tgn_enabled].nil?
-      return true
+      Geomash.config[:tgn_enabled] || true
     end
 
     def self.blazegraph_config
@@ -12,21 +16,23 @@ module Geomash
     end
 
     def self.blazegraph_enabled
-      return self.blazegraph_config[0] != 'url' &&  self.blazegraph_config[0] != 'url'
+      self.blazegraph_config[0] != 'url' &&  self.blazegraph_config[0] != 'url'
     end
 
     def self.tgn_from_context
       return "FROM <#{self.blazegraph_config[1]}>" if self.blazegraph_enabled
-      return ""
+
+      +''
     end
 
     def self.aat_from_context
       return "FROM <#{self.blazegraph_config[2]}>" if self.blazegraph_enabled
-      return ""
+
+      +''
     end
 
     def self.get_tgn_data(tgn_id)
-      return nil if Geomash::TGN.tgn_enabled != true
+      return if Geomash::TGN.tgn_enabled != true
 
       tgn_id = tgn_id.strip
 
@@ -35,9 +41,9 @@ module Geomash
 
       #Only hit the external service if blazegraph isn't installed
       unless self.blazegraph_enabled
-        primary_tgn_response = Typhoeus::Request.get("http://vocab.getty.edu/download/json", :params=>{:uri=>"http://vocab.getty.edu/tgn/#{tgn_id}.json"}, :timeout=>500)
+        primary_tgn_response = Typhoeus::Request.get("https://vocab.getty.edu/tgn/#{tgn_id}.json", followlocation: true, headers: GETTY_TGN_HEADERS, timeout: 500)
 
-        return nil if(primary_tgn_response.response_code == 404) #Couldn't find TGN... FIXME: additional check needed if TGN is down?
+        return if primary_tgn_response.response_code == 404 # Couldn't find TGN... FIXME: additional check needed if TGN is down?
 
         as_json_tgn_response = JSON.parse(primary_tgn_response.body)
       end
@@ -45,7 +51,7 @@ module Geomash
 
       #There is a bug with some TGN JSON files currently. Example: http://vocab.getty.edu/tgn/7014203.json . Per an email
       # with Getty, this is a hackish workaround for now.
-      if as_json_tgn_response.nil? || as_json_tgn_response['results'].blank?
+      if as_json_tgn_response.blank?
         query = %{
           SELECT ?Object ?Predicate #{self.tgn_from_context}
 WHERE
@@ -59,41 +65,60 @@ WHERE
         query = query.squish
 
         if self.blazegraph_enabled
-          primary_tgn_response = Typhoeus::Request.post(self.blazegraph_config[0], :body=>{:query=>query}, :timeout=>500, headers: { Accept: "application/sparql-results+json" })
+          primary_tgn_response = Typhoeus::Request.post(self.blazegraph_config[0], body: { query: query }, timeout: 500, headers: { Accept: 'application/sparql-results+json' })
         else
-          primary_tgn_response = Typhoeus::Request.get("http://vocab.getty.edu/sparql.json", :body=>{:query=>query}, :timeout=>500)
+          primary_tgn_response = Typhoeus::Request.get('https://vocab.getty.edu/vocab/sparql.json', body: { query: query }, timeout: 500 )
         end
 
         as_json_tgn_response = JSON.parse(primary_tgn_response.body)
       end
 
-      as_json_tgn_response['results']['bindings'].each do |ntriple|
-        case ntriple['Predicate']['value']
+      as_json_tgn_response.values.each do |ntriple|
+        ntriple.each do |uri_key, uri_val|
+          case uri_key
           when 'http://www.w3.org/2004/02/skos/core#prefLabel'
-            if ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'en'
-              tgn_main_term_info[:label_en] ||= ntriple['Object']['value']
-            elsif  ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'zh-latn-pinyin'
-              tgn_main_term_info[:label_other] ||= ntriple['Object']['value']
-            elsif ntriple['Object']['xml:lang'].blank?
-              tgn_main_term_info[:label_default] ||= ntriple['Object']['value']
-            else
-              tgn_main_term_info[:label_remaining] ||= ntriple['Object']['value']
-            end
+            tgn_main_term_info[:label_default] ||= uri_val&.first&.[]('value')
           when 'http://www.w3.org/2004/02/skos/core#altLabel'
-            if ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'en'
-              tgn_main_term_info[:label_alt] ||= ntriple['Object']['value']
-            end
+            tgn_main_term_info[:label_alt] ||= uri_val&.first&.[]('value')
           when 'http://vocab.getty.edu/ontology#placeTypePreferred'
-            tgn_main_term_info[:aat_place] ||= ntriple['Object']['value']
+            tgn_main_term_info[:aat_place] ||= uri_val&.first&.[]('value')
           when 'http://schema.org/latitude'
-            tgn_main_term_info[:latitude] ||= ntriple['Object']['value']
+            tgn_main_term_info[:latitude] ||= uri_val&.first&.[]('value')
           when 'http://schema.org/longitude'
-            tgn_main_term_info[:longitude] ||= ntriple['Object']['value']
+            tgn_main_term_info[:longitude] ||= uri_val&.first&.[]('value')
           when 'http://vocab.getty.edu/ontology#broaderPreferredExtended'
-            broader_place_type_list << ntriple['Object']['value']
+            broader_place_type_list += uri_val&.pluck('value')
+          end
         end
-
       end
+
+      # Note this is the old way since Getty changed the response format
+      # as_json_tgn_response['results']['bindings'].each do |ntriple|
+      #   case ntriple['Predicate']['value']
+      #     when 'http://www.w3.org/2004/02/skos/core#prefLabel'
+      #       if ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'en'
+      #         tgn_main_term_info[:label_en] ||= ntriple['Object']['value']
+      #       elsif  ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'zh-latn-pinyin'
+      #         tgn_main_term_info[:label_other] ||= ntriple['Object']['value']
+      #       elsif ntriple['Object']['xml:lang'].blank?
+      #         tgn_main_term_info[:label_default] ||= ntriple['Object']['value']
+      #       else
+      #         tgn_main_term_info[:label_remaining] ||= ntriple['Object']['value']
+      #       end
+      #     when 'http://www.w3.org/2004/02/skos/core#altLabel'
+      #       if ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'en'
+      #         tgn_main_term_info[:label_alt] ||= ntriple['Object']['value']
+      #       end
+      #     when 'http://vocab.getty.edu/ontology#placeTypePreferred'
+      #       tgn_main_term_info[:aat_place] ||= ntriple['Object']['value']
+      #     when 'http://schema.org/latitude'
+      #       tgn_main_term_info[:latitude] ||= ntriple['Object']['value']
+      #     when 'http://schema.org/longitude'
+      #       tgn_main_term_info[:longitude] ||= ntriple['Object']['value']
+      #     when 'http://vocab.getty.edu/ontology#broaderPreferredExtended'
+      #       broader_place_type_list << ntriple['Object']['value']
+      #   end
+      # end
 
       # coordinates
       coords = nil
@@ -101,7 +126,7 @@ WHERE
         coords = {}
         coords[:latitude] = tgn_main_term_info[:latitude]
         coords[:longitude] = tgn_main_term_info[:longitude]
-        coords[:combined] = tgn_main_term_info[:latitude] + ',' + tgn_main_term_info[:longitude]
+        coords[:combined] = "#{tgn_main_term_info[:latitude]},#{tgn_main_term_info[:longitude]}"
       end
 
       hier_geo = {}
@@ -343,13 +368,10 @@ WHERE
         tgn_data[:non_hier_geo] = non_hier_geo.present? ? non_hier_geo : nil
 
       else
-
         tgn_data = nil
-
       end
 
-      return tgn_data
-
+      tgn_data
     end
 
     def self.tgn_id_from_geo_hash(geo_hash)
