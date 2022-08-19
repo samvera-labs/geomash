@@ -17,16 +17,17 @@ Gem::Specification.new do |s|
 
   s.files = Dir['{app,config,db,lib}/**/*', 'Rakefile', 'README.rdoc']
   s.test_files = Dir['test/**/*']
+  s.required_ruby_version = '>= 2.5'
 
-  s.add_dependency 'activesupport'
-  s.add_dependency 'countries', '>=2.0.0'
+  s.add_dependency 'activesupport', '>= 5.0'
+  s.add_dependency 'countries', '>= 5.0.0'
   s.add_dependency 'geocoder'
   s.add_dependency 'stringex'
-  s.add_dependency 'typhoeus'
+  s.add_dependency 'typhoeus', '>= 1.4'
   s.add_dependency 'nokogiri'
   s.add_dependency 'htmlentities'
   s.add_dependency 'sparql'
   s.add_development_dependency 'sqlite3'
-  s.add_development_dependency 'rails', '~> 6.1'
+  s.add_development_dependency 'rails', '>= 5.0', '< 7.0'
   s.add_development_dependency 'bundler'
 end

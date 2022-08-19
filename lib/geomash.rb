@@ -1,6 +1,16 @@
 # frozen_string_literal: true
 
 module Geomash
+  require 'geocoder'
+  require 'countries'
+  require 'stringex'
+  require 'typhoeus'
+  require 'nokogiri'
+  require 'htmlentities'
+  require 'active_support'
+  require 'active_support/core_ext/string/filters'
+  require 'active_support/core_ext/enumerable'
+  require 'active_support/core_ext/hash'
   require 'geomash/constants'
   require 'geomash/parser'
   require 'geomash/standardizer'
@@ -9,14 +19,6 @@ module Geomash
   require 'geomash/town_lookup'
   require 'geomash/autoexpire_cache_dalli'
   require 'geomash/autoexpire_cache_redis'
-  require 'geocoder'
-  require 'countries'
-  require 'stringex'
-  require 'typhoeus'
-  require 'nokogiri'
-  require 'htmlentities'
-  require 'active_support/core_ext/string/filters'
-  require 'active_support/hash_with_indifferent_access'
 
   def self.config
     @config ||= YAML::load(File.open(config_path))[env]

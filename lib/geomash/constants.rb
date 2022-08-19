@@ -71,7 +71,7 @@ module Geomash
         'WV' => 'West Virginia',
         'WI' => 'Wisconsin',
         'WY' => 'Wyoming'
-    }
+    }.freeze
 
     #Terms that drive geographic parsers mad...
     #Possibly check using QA against LCSH Subject topics that aren't geographical...
@@ -89,7 +89,7 @@ module Geomash
         'county',
         #Some date removal
         /[\d]+th [cC]entury,/
-    ]
+    ].freeze
 
 
     STATE_TOWN_TGN_IDS =
@@ -481,6 +481,6 @@ module Geomash
             {:location_name => "Worthington", :tgn_id => "2051048"},
             {:location_name => "Wrentham", :tgn_id => "2051050"},
             {:location_name => "Yarmouth", :tgn_id => "2051052"}
-        ]}
+        ]}.freeze
   end
 end

@@ -51,7 +51,6 @@ class TGNTest < ActiveSupport::TestCase
 
        result = Geomash::TGN.get_tgn_data('invalid_identifier')
        assert_nil result
-
     end
   end
 end

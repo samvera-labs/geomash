@@ -148,7 +148,7 @@ module Geomash
                                        :combined=>mapquest_api_result.first.data['latLng']['lat'].to_s + ',' + mapquest_api_result.first.data['latLng']['lng'].to_s}
         end
 
-        return_hash[:country_part] = ISO3166::Country.new(mapquest_api_result.first.data["adminArea1"]).name
+        return_hash[:country_part] = ISO3166::Country.new(mapquest_api_result.first.data["adminArea1"]).iso_short_name
 
         if return_hash[:country_part] == 'United States'
           return_hash[:state_part] = Geomash::Constants::STATE_ABBR[mapquest_api_result.first.data["adminArea3"]] || mapquest_api_result.first.data["adminArea4"]
