@@ -1,6 +1,5 @@
 module Geomash
   class Geonames
-
     def self.geonames_username
       Geomash.config[:geonames_username] || '<username>'
     end
@@ -110,7 +109,7 @@ module Geomash
         elsif geo_hash[:country_part] == 'The Bahamas'
           country_code = 'BS'
         else
-          country_lookup = ISO3166::Country.find_country_by_name(geo_hash[:country_part])
+          country_lookup = ISO3166::Country.find_country_by_any_name(geo_hash[:country_part])
           if country_lookup.blank?
             Rails.logger.warn("WARNING [Geomash]: Could not find Country in geonames for: #{geo_hash[:country_part]}")
             country_code = ''

@@ -1,9 +1,9 @@
+# frozen_string_literal: true
+
 module Geomash
   class Parser
-
     def self.cache_enabled
-      return Geomash.config[:parser_cache_enabled] unless Geomash.config[:parser_cache_enabled].nil?
-      return false
+      return Geomash.config[:parser_cache_enabled] || false
     end
 
     def self.mapquest_key
@@ -39,23 +39,17 @@ module Geomash
       term = Geomash::Standardizer.parse_for_geographic_term(term) if parse_term_flag
       term = Geomash::Standardizer.standardize_geographic_term(term)
 
-      if term.blank?
-        return {}
-      end
+      return {} if term.blank?
 
       return_hash[:standardized_term] = term
 
       #Bing API does badly with parentheses...
-      if term.match(/[\(\)]+/)
-        return {}
-      end
+      return {} if term.match(/[\(\)]+/)
 
       #Sometimes with building, city, state, bing is dumb and will only return state. Example: Boston Harbor, Boston, Mass.
       #So if not a street address, pass to have google handle it for better results...
       #Example of another bad record: South Street bridge, West Bridgewater, Mass. would give a place in Holyoke
-      if term.split(',').length >= 3 && term.match(/\d/).blank? && term.downcase.match(/ave\.*,/).blank? && term.downcase.match(/avenue\.*,/).blank? && term.downcase.match(/street\.*,/).blank? && term.downcase.match(/st\.*,/).blank? && term.downcase.match(/road\.*,/).blank? && term.downcase.match(/rd\.*,/).blank?
-        return {}
-      end
+      return {} if term.split(',').length >= 3 && term.match(/\d/).blank? && term.downcase.match(/ave\.*,/).blank? && term.downcase.match(/avenue\.*,/).blank? && term.downcase.match(/street\.*,/).blank? && term.downcase.match(/st\.*,/).blank? && term.downcase.match(/road\.*,/).blank? && term.downcase.match(/rd\.*,/).blank?
 
       ::Geocoder.configure(:lookup => :bing,:api_key => self.bing_key,:timeout => self.timeout, :always_raise => :all)
 
@@ -76,9 +70,8 @@ module Geomash
       #Use only for United States results... international results are inaccurate.
       if bing_api_result.present? && bing_api_result.first.data["address"]["countryRegion"] == 'United States'
 
-        if bing_api_result.first.data["entityType"] == 'Neighborhood'
-          return {} #Doesn't return a city... Google handles this better.
-        end
+        return {} if bing_api_result.first.data["entityType"] == 'Neighborhood'
+          #Doesn't return a city... Google handles this better.
 
         if bing_api_result.first.data["address"]["addressLine"].present?
           return_hash[:term_differs_from_tgn] = true
@@ -102,7 +95,7 @@ module Geomash
       end
 
       #Only return if USA for now. International results often awful.
-      return return_hash[:country_part] == 'United States' ? return_hash : {}
+      return_hash[:country_part] == 'United States' ? return_hash : {}
     end
 
     #Mapquest allows unlimited requests - start here?
@@ -118,22 +111,16 @@ module Geomash
       term = Geomash::Standardizer.parse_for_geographic_term(term) if parse_term_flag
       term = Geomash::Standardizer.standardize_geographic_term(term)
 
-      if term.blank?
-        return {}
-      end
+      return {} if term.blank?
 
       return_hash[:standardized_term] = term
 
       #Mapquest returns bad data for: Manchester, Mass.
-      if term.include?('Manchester') || term.include?('Atlanta, MI')
-        return {}
-      end
+      return {} if term.include?('Manchester') || term.include?('Atlanta, MI')
 
       #Messed up with just neighborhoods. Example: Hyde Park (Boston, Mass.) or Hyde Park (Boston, Mass.)
       #So if not a street address, pass to have google handle it for better results...
-      if term.split(',').length >= 3 && term.match(/\d/).blank? && term.downcase.match(/ave\.*,/).blank? && term.downcase.match(/avenue\.*,/).blank? && term.downcase.match(/street\.*,/).blank? && term.downcase.match(/st\.*,/).blank? && term.downcase.match(/road\.*,/).blank? && term.downcase.match(/rd\.*,/).blank?
-        return {}
-      end
+      return {} if term.split(',').length >= 3 && term.match(/\d/).blank? && term.downcase.match(/ave\.*,/).blank? && term.downcase.match(/avenue\.*,/).blank? && term.downcase.match(/street\.*,/).blank? && term.downcase.match(/st\.*,/).blank? && term.downcase.match(/road\.*,/).blank? && term.downcase.match(/rd\.*,/).blank?
 
       ::Geocoder.configure(:lookup => :mapquest,:api_key => self.mapquest_key,:timeout => self.timeout, :always_raise => :all)
 
@@ -161,7 +148,7 @@ module Geomash
                                        :combined=>mapquest_api_result.first.data['latLng']['lat'].to_s + ',' + mapquest_api_result.first.data['latLng']['lng'].to_s}
         end
 
-        return_hash[:country_part] = ISO3166::Country.new(mapquest_api_result.first.data["adminArea1"]).name
+        return_hash[:country_part] = ISO3166::Country.new(mapquest_api_result.first.data["adminArea1"]).iso_short_name
 
         if return_hash[:country_part] == 'United States'
           return_hash[:state_part] = Geomash::Constants::STATE_ABBR[mapquest_api_result.first.data["adminArea3"]] || mapquest_api_result.first.data["adminArea4"]
@@ -179,7 +166,7 @@ module Geomash
       return {} unless return_hash[:country_part] == 'United States'
       return {} if term.split(',').length >= 2 && return_hash[:city_part].blank?
 
-      return return_hash
+      return_hash
     end
 
     #Final fallback is google API. The best but we are limited to 2500 requests per day unless we pay the $10k a year premium account...
@@ -195,9 +182,7 @@ module Geomash
       term = Geomash::Standardizer.standardize_geographic_term(term)
 
       #Soviet Union returns back a place in Kazakhstan
-      if term.blank? || term == 'Soviet Union'
-        return {}
-      end
+      return {} if term.blank? || term == 'Soviet Union'
 
       #FIXME: Handle just a plain 'Korea' better...
       if term.match(/Korea/) and !term.match(/South/) and !term.match(/North/)
@@ -301,10 +286,16 @@ module Geomash
         return_hash[:state_part] = 'Picardy'
       end
 
+      if return_hash[:city_part] == 'Washington, D.C.'
+        return_hash[:city_part] = 'Washington'
+      end
+
+      # if result_hash[]
+
       #FIXME: Google free API rate limit is 5 requests / 1 second now (used to be 10). Need a better way to handle this.
       sleep(0.1)
 
-      return return_hash
+      return_hash
     end
   end
 end

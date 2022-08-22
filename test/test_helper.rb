@@ -7,6 +7,7 @@ require "rails/test_help"
 require 'geomash'
 Rails.backtrace_cleaner.remove_silencers!
 
+Stringex::Localization.locale = :en
 # Load support files
 Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each { |f| require f }
 

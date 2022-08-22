@@ -1,4 +1,6 @@
-#Taken from: https://github.com/alexreisner/geocoder/blob/master/examples/autoexpire_cache_dalli.rb
+# frozen_string_literal: true
+
+# Taken from: https://github.com/alexreisner/geocoder/blob/master/examples/autoexpire_cache_dalli.rb
 module Geomash
   class AutoexpireCacheDalli
     def initialize(store, ttl = 86400)

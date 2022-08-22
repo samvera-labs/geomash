@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Geomash
   class TownLookup
     #Only returns one result for now...
@@ -13,7 +15,7 @@ module Geomash
         end
       end
 
-      return return_tgn_id
+      return_tgn_id
     end
   end
 end
