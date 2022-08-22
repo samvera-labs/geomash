@@ -1,5 +1,6 @@
 # frozen_string_literal: true
-#Taken from: https://github.com/alexreisner/geocoder/blob/master/examples/autoexpire_cache_redis.rb
+
+# Taken from: https://github.com/alexreisner/geocoder/blob/master/examples/autoexpire_cache_redis.rb
 
 module Geomash
   class AutoexpireCacheRedis

@@ -286,6 +286,12 @@ module Geomash
         return_hash[:state_part] = 'Picardy'
       end
 
+      if return_hash[:city_part] == 'Washington, D.C.'
+        return_hash[:city_part] = 'Washington'
+      end
+
+      # if result_hash[]
+
       #FIXME: Google free API rate limit is 5 requests / 1 second now (used to be 10). Need a better way to handle this.
       sleep(0.1)
 

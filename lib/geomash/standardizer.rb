@@ -19,8 +19,9 @@ module Geomash
       state_name_list = []
       country_name_list = []
 
-      #Countries gem of https://github.com/hexorx/countries
-      ISO3166::Country.new('US').states.each do |state_abbr, state_names|
+      # Countries gem of https://github.com/hexorx/countries
+      # UPDATE: 8/22/2022 have to use #subdivisions instead of states due to deprecation warning from countries gem
+      ISO3166::Country.new('US').subdivisions.each do |state_abbr, state_names|
         state_abbr_list << " #{state_abbr}"
         state_name_list << state_names['name']
       end
@@ -272,7 +273,6 @@ module Geomash
         geo_hash_local[:city_part] = orig_string_check.first.strip if orig_string_check.present?
         return geo_hash_local
       end
-
 
       if geo_hash_local[:state_part].present?
         orig_string_check = geo_hash_local[:standardized_term].gsub(',', ' ').squish.split(' ').select { |value| value.downcase.to_ascii == geo_hash_local[:state_part].downcase.to_ascii}

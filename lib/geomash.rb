@@ -45,11 +45,10 @@ module Geomash
     File.join(app_root, 'config', 'geomash.yml')
   end
 
-  def self.parse(term,parse_term=false)
+  def self.parse(term, parse_term = false)
     return {} if term.blank?
 
     return_hash = Geomash::Parser.parse_mapquest_api(term, parse_term)
-
 
     return_hash = Geomash::Parser.parse_bing_api(term, parse_term) if return_hash.blank?
 

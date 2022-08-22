@@ -286,7 +286,7 @@ module Geomash
         if self.blazegraph_enabled
           tgn_response_for_aat = Typhoeus::Request.post(self.blazegraph_config[0], body: { query: query }, timeout: 500, headers: { Accept: "application/sparql-results+json" })
         else
-          tgn_response_for_aat = Typhoeus::Request.get("http://vocab.getty.edu/sparql.json", params: { query: query }, timeout: 500)
+          tgn_response_for_aat = Typhoeus::Request.get('http://vocab.getty.edu/sparql.json', params: { query: query }, timeout: 500)
         end
 
         raise "Sparql query for broader_place_type_list failed with the code #{tgn_response_for_aat.response_code}" unless tgn_response_for_aat.success?
@@ -324,68 +324,67 @@ module Geomash
             if default_label_response.success?
               as_json_default_label = JSON.parse(default_label_response.body)
               if as_json_default_label.dig('results', 'bindings').present?
-                as_json_default_label.dig('results', 'bindings').present?.each do |ntriple|
+                as_json_default_label.dig('results', 'bindings').each do |ntriple|
                   case ntriple['Predicate']['value']
-                    when 'http://www.w3.org/2004/02/skos/core#prefLabel'
-                      if ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'en'
-                        tgn_term = ntriple['Object']['value']
-                      else
-                        tgn_term ||= ntriple['Object']['value']
-                      end
-                    when 'http://www.w3.org/2000/01/rdf-schema#label'
+                  when 'http://www.w3.org/2004/02/skos/core#prefLabel'
+                    if ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'en'
+                      tgn_term = ntriple['Object']['value']
+                    else
                       tgn_term ||= ntriple['Object']['value']
                     end
+                  when 'http://www.w3.org/2000/01/rdf-schema#label'
+                    tgn_term ||= ntriple['Object']['value']
                   end
-                else
-                  as_json_default_label.values.each do |ntriple|
-                    ntriple.each do |uri_key, uri_val|
-                      case uri_key
-                      when 'http://www.w3.org/2004/02/skos/core#prefLabel'
-                        tgn_term ||= uri_val&.first&.[]('value')
-                      when 'http://www.w3.org/2000/01/rdf-schema#label'
-                        tgn_term ||= uri_val&.first&.[]('value')
-                      end
+                end
+              else
+                as_json_default_label.values.each do |ntriple|
+                  ntriple.each do |uri_key, uri_val|
+                    case uri_key
+                    when 'http://www.w3.org/2004/02/skos/core#prefLabel'
+                      tgn_term ||= uri_val&.first&.[]('value')
+                    when 'http://www.w3.org/2000/01/rdf-schema#label'
+                      tgn_term ||= uri_val&.first&.[]('value')
                     end
                   end
                 end
               end
             end
+          end
 
-            if tgn_term.blank?
-              raise "Could not find a label for broader term: #{aat_response['identifier_place']['value']} of base term: #{tgn_id}"
+          raise "Could not find a label for broader term: #{aat_response['identifier_place']['value']} of base term: #{tgn_id}" if tgn_term.blank?
+
+          case tgn_term_type
+          when '300128176' #continent
+            hier_geo[:continent] ||= tgn_term
+          when '300128207', '300387130', '300387506' #nation, autonomous areas, countries
+            hier_geo[:country] ||= tgn_term
+          when '300000774' #province
+            hier_geo[:province] ||= tgn_term
+          when '300236112', '300182722', '300387194', '300387052', '300387113', '300387107' #region, union, semi-independent political entity, autonomous communities, autonomous regions
+            hier_geo[:region] ||= tgn_term
+          when '300000776', '300000772', '300235093' #state, department, governorate
+            hier_geo[:state] ||= tgn_term
+          when '300387081' #national district
+            if tgn_term == 'District of Columbia'
+              hier_geo[:state] ||= tgn_term
+            else
+              hier_geo[:territory] ||= tgn_term
             end
-            case tgn_term_type
-              when '300128176' #continent
-                hier_geo[:continent] ||= tgn_term
-              when '300128207', '300387130', '300387506' #nation, autonomous areas, countries
-                hier_geo[:country] ||= tgn_term
-              when '300000774' #province
-                hier_geo[:province] ||= tgn_term
-              when '300236112', '300182722', '300387194', '300387052', '300387113', '300387107' #region, union, semi-independent political entity, autonomous communities, autonomous regions
-                hier_geo[:region] ||= tgn_term
-              when '300000776', '300000772', '300235093' #state, department, governorate
-                hier_geo[:state] ||= tgn_term
-              when '300387081' #national district
-                if tgn_term == 'District of Columbia'
-                  hier_geo[:state] ||= tgn_term
-                else
-                  hier_geo[:territory] ||= tgn_term
-                end
-              when '300135982', '300387176', '300387122' #territory, dependent state, union territory
-                hier_geo[:territory] ||= tgn_term
-              when '300000771', '300387092', '300387071' #county, parishes, unitary authorities
-                hier_geo[:county] ||= tgn_term
-              when '300008347', '300008389' #inhabited place, cities
-                hier_geo[:city] ||= tgn_term
-              when '300000745', '300000778', '300387331' #neighborhood, parishes, parts of inhabited places
-                hier_geo[:city_section] ||= tgn_term
-              when '300008791', '300387062' #island
-                hier_geo[:island] ||= tgn_term
-              when '300387575', '300387346', '300167671', '300387178', '300387082', '300387173', '300055621', '300386853', '300386831', '300386832', '300008178', '300008804', '300387131', '300132348', '300387085', '300387198', '300008761'   #'81101/area', '22101/general region', '83210/deserted settlement', '81501/historical region', '81126/national division', administrative divisions, area (measurement), island groups, mountain ranges, mountain systems, nature reserves, peninsulas, regional divisions, sand bars, senatorial districts (administrative districts), third level subdivisions (political entities), valleys (landforms)
-                hier_geo[:area] ||= tgn_term
-            end
+          when '300135982', '300387176', '300387122' #territory, dependent state, union territory
+            hier_geo[:territory] ||= tgn_term
+          when '300000771', '300387092', '300387071' #county, parishes, unitary authorities
+            hier_geo[:county] ||= tgn_term
+          when '300008347', '300008389' #inhabited place, cities
+            hier_geo[:city] ||= tgn_term
+          when '300000745', '300000778', '300387331' #neighborhood, parishes, parts of inhabited places
+            hier_geo[:city_section] ||= tgn_term
+          when '300008791', '300387062' #island
+            hier_geo[:island] ||= tgn_term
+          when '300387575', '300387346', '300167671', '300387178', '300387082', '300387173', '300055621', '300386853', '300386831', '300386832', '300008178', '300008804', '300387131', '300132348', '300387085', '300387198', '300008761'   #'81101/area', '22101/general region', '83210/deserted settlement', '81501/historical region', '81126/national division', administrative divisions, area (measurement), island groups, mountain ranges, mountain systems, nature reserves, peninsulas, regional divisions, sand bars, senatorial districts (administrative districts), third level subdivisions (political entities), valleys (landforms)
+            hier_geo[:area] ||= tgn_term
           end
         end
+      end
       tgn_data = {}
       tgn_data[:coords] = coords
       tgn_data[:hier_geo] = hier_geo.length > 0 ? hier_geo : nil
@@ -632,17 +631,17 @@ GROUP BY ?object_identifier
       return_hash
     end
 
-    def self.tgn_sparql_request(query, method='GET')
+    def self.tgn_sparql_request(query, method = 'GET')
       response = {}
       query = query.squish
 
       if self.blazegraph_enabled
-        tgn_response = Typhoeus::Request.post(self.blazegraph_config[0], :body=>{:query=>query}, :timeout=>500, headers: { Accept: "application/sparql-results+json" })
+        tgn_response = Typhoeus::Request.post(self.blazegraph_config[0], body: { query: query }, timeout: 500, headers: { Accept: 'application/sparql-results+json' })
       else
         if method == 'GET'
-          tgn_response = Typhoeus::Request.get("http://vocab.getty.edu/sparql.json", :params=>{:query=>query}, :timeout=>500)
+          tgn_response = Typhoeus::Request.get('https://vocab.getty.edu/sparql.json', params: { query: query }, timeout: 500)
         else
-          tgn_response = Typhoeus::Request.post("http://vocab.getty.edu/sparql.json", :params=>{:query=>query}, :timeout=>500)
+          tgn_response = Typhoeus::Request.post('https://vocab.getty.edu/sparql.json', params: { query: query }, timeout: 500)
         end
       end
 
@@ -652,20 +651,20 @@ GROUP BY ?object_identifier
           response[:json] = as_json
           if as_json["results"]["bindings"].present? && as_json["results"]["bindings"].first["object_identifier"].present?
             response[:id] = as_json["results"]["bindings"].first["object_identifier"]["value"]
-            response[:rdf] = "http://vocab.getty.edu/tgn/#{response[:id]}.rdf"
+            response[:rdf] = "https://vocab.getty.edu/tgn/#{response[:id]}.rdf"
           end
           response[:errors] = false
         rescue JSON::ParserError
           response[:json] = nil
           response[:errors] = true
           if tgn_response.cached? && Typhoeus::Config.cache.present?
-            cache_key = Typhoeus::Request.new("http://vocab.getty.edu/sparql.json", params: { query: query }).cache_key
+            cache_key = Typhoeus::Request.new('https://vocab.getty.edu/sparql.json', params: { query: query }).cache_key
             Typhoeus::Config.cache.delete(cache_key) #Need to define a delete method like: def delete(request) Rails.cache.delete(request) end
           end
         end
       else
         if tgn_response.cached? && Typhoeus::Config.cache.present?
-          cache_key = Typhoeus::Request.new("http://vocab.getty.edu/sparql.json", params: { query: query }).cache_key
+          cache_key = Typhoeus::Request.new('https://vocab.getty.edu/sparql.json', params: { query: query }).cache_key
           Typhoeus::Config.cache.delete(cache_key) #Need to define a delete method like: def delete(request) Rails.cache.delete(request) end
         end
       end
