@@ -553,7 +553,6 @@ GROUP BY ?object_identifier
           web_request_error = true if cities_response[:errors]
 
         end
-
         #Case of Countries without a state breakdown... ie. Tokyo, Japan
         if state_part.blank? && country_response[:id].present? && city_part.present? && !web_request_error
           query = %{SELECT ?object_identifier #{self.tgn_from_context}
