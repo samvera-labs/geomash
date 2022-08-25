@@ -316,9 +316,9 @@ module Geomash
                         }
                       }.squish
 
-              default_label_response = Typhoeus::Request.post(self.blazegraph_config[0], :body=>{:query=>query}, :timeout=>500, headers: { Accept: "application/sparql-results+json" })
+              default_label_response = Typhoeus::Request.post(self.blazegraph_config[0], body: { query: query }, timeout: 500, headers: { Accept: "application/sparql-results+json" })
             else
-              default_label_response = Typhoeus::Request.get("https://vocab.getty.edu/tgn/#{aat_response['identifier_place']['value']}", headers: GETTY_TGN_HEADERS, timeout: 500)
+              default_label_response = Typhoeus::Request.get("https://vocab.getty.edu/tgn/#{aat_response['identifier_place']['value']}", headers: GETTY_TGN_HEADERS, followlocation: true, timeout: 500)
             end
 
             if default_label_response.success?

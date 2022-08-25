@@ -49,6 +49,16 @@ class TGNTest < ActiveSupport::TestCase
        assert_equal 'Canaveral, Cape', result[:non_hier_geo][:value]
        assert_nil result[:non_hier_geo][:qualifier]
 
+       result = Geomash::TGN.get_tgn_data('1089719')
+       assert_equal '15.3333', result[:coords][:latitude]
+       assert_equal '38.9667', result[:coords][:longitude]
+       assert_equal '15.3333,38.9667', result[:coords][:combined]
+       assert_equal 'Eritrea', result[:hier_geo][:country]
+       assert_equal 'Asmara', result[:hier_geo][:city]
+       assert_equal 'Africa', result[:hier_geo][:continent]
+       assert_equal 'Central', result[:hier_geo][:region]
+       assert_nil result[:non_hier_geo]
+
        result = Geomash::TGN.get_tgn_data('invalid_identifier')
        assert_nil result
     end
