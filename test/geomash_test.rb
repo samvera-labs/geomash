@@ -100,8 +100,6 @@ class GeomashTest < ActiveSupport::TestCase
     assert_equal false, result[:tgn][:original_string_differs] if Geomash::TGN.tgn_enabled == true
     assert_equal '3038789', result[:geonames][:id] if Geomash::Geonames.geonames_username != '<username>'
     assert_equal false, result[:geonames][:original_string_differs] if Geomash::Geonames.geonames_username != '<username>'
-
-
   end
 
   def test_parse_with_no_flag
