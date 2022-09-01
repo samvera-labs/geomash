@@ -90,6 +90,8 @@ module Geomash
               end
             when 'http://vocab.getty.edu/ontology#placeTypePreferred'
               tgn_main_term_info[:aat_place] ||= ntriple['Object']['value']
+            when 'http://vocab.getty.edu/ontology#placeTypeNonPreferred'
+              tgn_main_term_info[:aat_place_non_preferred] ||= ntriple['Object']['value']
             when 'http://schema.org/latitude'
               tgn_main_term_info[:latitude] ||= ntriple['Object']['value']
             when 'http://schema.org/longitude'
@@ -108,6 +110,8 @@ module Geomash
               tgn_main_term_info[:label_alt] ||= uri_val&.first&.[]('value')
             when 'http://vocab.getty.edu/ontology#placeTypePreferred'
               tgn_main_term_info[:aat_place] ||= uri_val&.first&.[]('value')
+            when 'http://vocab.getty.edu/ontology#placeTypeNonPreferred'
+              tgn_main_term_info[:aat_place_non_preferred] ||= uri_val&.first&.[]('value')
             when 'http://schema.org/latitude'
               tgn_main_term_info[:latitude] ||= uri_val&.first&.[]('value')
             when 'http://schema.org/longitude'
@@ -138,8 +142,13 @@ module Geomash
       tgn_term ||= tgn_main_term_info[:label_alt]
       tgn_term ||= tgn_main_term_info[:label_remaining]
 
-      tgn_term_type = tgn_main_term_info[:aat_place].split('/').last if tgn_main_term_info[:aat_place]
-
+      tgn_term_type = if tgn_main_term_info[:aat_place].present?
+                        tgn_main_term_info[:aat_place].split('/').last
+                      elsif tgn_main_term_info[:aat_place_non_preferred].present?
+                        tgn_main_term_info[:aat_place_non_preferred].split('/').last
+                      else
+                        raise "Could not determine aat term type for tgn #{tgn_id}"
+                      end
       #Initial Term
       return if tgn_term.blank? && tgn_term_type.blank?
 
@@ -170,7 +179,7 @@ module Geomash
           hier_geo[:city_section] = tgn_term
         when '300008791', '300387062' #island
           hier_geo[:island] = tgn_term
-        when '300387575', '300387346', '300167671', '300387178', '300387082', '300387173', '300055621', '300386853', '300386831', '300386832', '300008178', '300008804', '300387131', '300132348', '300387085', '300387198', '300008761'   #'81101/area', '22101/general region', '83210/deserted settlement', '81501/historical region', '81126/national division', administrative divisions, area (measurement), island groups, mountain ranges, mountain systems, nature reserves, peninsulas, regional divisions, sand bars, senatorial districts (administrative districts), third level subdivisions (political entities), valleys (landforms)
+        when '300387575', '300387346', '300167671', '300387178', '300387082', '300387173', '300055621', '300386853', '300386831', '300386832', '300008178', '300008804', '300387131', '300132348', '300387085', '300387198', '300008761','300387064'   #'81101/area', '22101/general region', '83210/deserted settlement', '81501/historical region', '81126/national division', administrative divisions, area (measurement), island groups, mountain ranges, mountain systems, nature reserves, peninsulas, regional divisions, sand bars, senatorial districts (administrative districts), first/third level subdivisions (political entities), valleys (landforms)
           hier_geo[:area] = tgn_term
         when '300386699' #Top level element of World
           non_hier_geo[:value] = 'World'
@@ -282,11 +291,10 @@ module Geomash
         query += ". }} GROUP BY ?identifier_place ?place_label_default ?place_label_en ?place_label_latn_pinyin ?aat_pref"
         query = query.squish
 
-
         if self.blazegraph_enabled
           tgn_response_for_aat = Typhoeus::Request.post(self.blazegraph_config[0], body: { query: query }, timeout: 500, headers: { Accept: "application/sparql-results+json" })
         else
-          tgn_response_for_aat = Typhoeus::Request.get('http://vocab.getty.edu/sparql.json', params: { query: query }, timeout: 500)
+          tgn_response_for_aat = Typhoeus::Request.post('http://vocab.getty.edu/sparql.json', body: { query: query }, timeout: 500)
         end
 
         raise "Sparql query for broader_place_type_list failed with the code #{tgn_response_for_aat.response_code}" unless tgn_response_for_aat.success?
