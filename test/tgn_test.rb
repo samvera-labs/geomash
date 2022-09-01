@@ -59,6 +59,27 @@ class TGNTest < ActiveSupport::TestCase
        assert_equal 'Central', result[:hier_geo][:region]
        assert_nil result[:non_hier_geo]
 
+       result = Geomash::TGN.get_tgn_data('8728596')
+       assert_equal '14.26667', result[:coords][:latitude]
+       assert_equal '170.65', result[:coords][:longitude]
+       assert_equal '14.26667,170.65', result[:coords][:combined]
+       assert_equal 'Eastern District', result[:hier_geo][:area]
+       assert_equal 'American Samoa', result[:hier_geo][:territory]
+       assert_equal 'Oceania', result[:hier_geo][:continent]
+       assert_nil result[:non_hier_geo]
+
+       result = Geomash::TGN.get_tgn_data('7016024')
+       assert_equal '53.8667', result[:coords][:latitude]
+       assert_equal '-166.5333', result[:coords][:longitude]
+       assert_equal '53.8667,-166.5333', result[:coords][:combined]
+       assert_equal 'Unalaska', result[:hier_geo][:city]
+       assert_equal 'Fox Islands', result[:hier_geo][:area]
+       assert_equal 'Unalaska Island', result[:hier_geo][:island]
+       assert_equal 'Alaska', result[:hier_geo][:state]
+       assert_equal 'North and Central America', result[:hier_geo][:continent]
+       assert_equal 'United States', result[:hier_geo][:country]
+       assert_nil result[:non_hier_geo]
+
        result = Geomash::TGN.get_tgn_data('invalid_identifier')
        assert_nil result
     end

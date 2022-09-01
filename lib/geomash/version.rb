@@ -1,5 +1,5 @@
 # frozen_string_literal: true
 
 module Geomash
-  VERSION = '0.5.7'
+  VERSION = '0.5.9'
 end
