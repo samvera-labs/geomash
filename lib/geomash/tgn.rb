@@ -44,7 +44,7 @@ module Geomash
       unless self.blazegraph_enabled
         primary_tgn_response = Typhoeus::Request.get("https://vocab.getty.edu/tgn/#{tgn_id}", followlocation: true, headers: GETTY_TGN_HEADERS, timeout: 500)
 
-        return if primary_tgn_response.failure? # Couldn't find TGN... FIXME: additional check needed if TGN is down?
+        return unless primary_tgn_response.success? # Couldn't find TGN... FIXME: additional check needed if TGN is down?
 
         as_json_tgn_response = JSON.parse(primary_tgn_response.body)
       end
@@ -124,23 +124,26 @@ module Geomash
       end
 
       # coordinates
-      coords = nil
-      if tgn_main_term_info[:latitude].present?
-        coords = {}
-        coords[:latitude] = tgn_main_term_info[:latitude]
-        coords[:longitude] = tgn_main_term_info[:longitude]
-        coords[:combined] = "#{tgn_main_term_info[:latitude]},#{tgn_main_term_info[:longitude]}"
+      coords = {}
+      coord_dims = %i(latitude longitude)
+      if tgn_main_term_info[coord_dims.first].present?
+        coord_dims.each do |dim|
+          coord_val = tgn_main_term_info[dim]
+          if coord_val.match?(/\A-*\.[0-9]/)
+            coord_val = coord_val.match?(/\A-/) ? "-0#{coord_val.gsub(/\A-/, '')}" : "0#{coord_val}"
+          end
+          coords[dim] = coord_val
+        end
+        coords[:combined] = "#{coords[coord_dims.first]},#{coords[coord_dims.last]}"
       end
 
       hier_geo = {}
       non_hier_geo = {}
 
       #Default term to best label language...
-      tgn_term = tgn_main_term_info[:label_en]
-      tgn_term ||= tgn_main_term_info[:label_default]
-      tgn_term ||= tgn_main_term_info[:label_other]
-      tgn_term ||= tgn_main_term_info[:label_alt]
-      tgn_term ||= tgn_main_term_info[:label_remaining]
+      tgn_term = tgn_main_term_info[:label_en] || tgn_main_term_info[:label_default] ||
+                 tgn_main_term_info[:label_other] || tgn_main_term_info[:label_alt] ||
+                 tgn_main_term_info[:label_remaining]
 
       tgn_term_type = if tgn_main_term_info[:aat_place].present?
                         tgn_main_term_info[:aat_place].split('/').last
@@ -153,122 +156,129 @@ module Geomash
       return if tgn_term.blank? && tgn_term_type.blank?
 
       case tgn_term_type
-        when '300128176' #continent
-          hier_geo[:continent] = tgn_term
-        when '300128207', '300387130', '300387506' #nation, autonomous areas, countries
-          hier_geo[:country] = tgn_term
-        when '300000774' #province
-          hier_geo[:province] = tgn_term
-        when '300236112', '300182722', '300387194', '300387052', '300387113', '300387107' #region, union, semi-independent political entity, autonomous communities, autonomous regions
-          hier_geo[:region] = tgn_term
-        when '300000776', '300000772', '300235093' #state, department, governorate
+      when '300008347', '300008389' #inhabited place, cities
+        hier_geo[:city] = tgn_term
+      when '300000745', '300000778', '300387331' #neighborhood, parishes, parts of inhabited places
+        hier_geo[:city_section] = tgn_term
+      when '300128176' #continent
+        hier_geo[:continent] = tgn_term
+      when '300128207', '300387130', '300387506' #nation, autonomous areas, countries
+        hier_geo[:country] = tgn_term
+      when '300000774' #province
+        hier_geo[:province] = tgn_term
+      when '300236112', '300182722', '300387194', '300387052', '300387113', '300387107' #region, union, semi-independent political entity, autonomous communities, autonomous regions
+        hier_geo[:region] = tgn_term
+      when '300000776', '300000772', '300235093' #state, department, governorate
+        hier_geo[:state] = tgn_term
+      when '300387081' #national district
+        if tgn_term == 'District of Columbia'
           hier_geo[:state] = tgn_term
-        when '300387081' #national district
-          if tgn_term == 'District of Columbia'
-            hier_geo[:state] = tgn_term
-          else
-            hier_geo[:territory] = tgn_term
-          end
-        when '300135982', '300387176', '300387122' #territory, dependent state, union territory
-          hier_geo[:territory] = tgn_term
-        when '300000771', '300387092', '300387071' #county, parishes, unitary authorities
-          hier_geo[:county] = tgn_term
-        when '300008347', '300008389' #inhabited place, cities
-          hier_geo[:city] = tgn_term
-        when '300000745', '300000778', '300387331' #neighborhood, parishes, parts of inhabited places
-          hier_geo[:city_section] = tgn_term
-        when '300008791', '300387062' #island
-          hier_geo[:island] = tgn_term
-        when '300387575', '300387346', '300167671', '300387178', '300387082', '300387173', '300055621', '300386853', '300386831', '300386832', '300008178', '300008804', '300387131', '300132348', '300387085', '300387198', '300008761','300387064'   #'81101/area', '22101/general region', '83210/deserted settlement', '81501/historical region', '81126/national division', administrative divisions, area (measurement), island groups, mountain ranges, mountain systems, nature reserves, peninsulas, regional divisions, sand bars, senatorial districts (administrative districts), first/third level subdivisions (political entities), valleys (landforms)
-          hier_geo[:area] = tgn_term
-        when '300386699' #Top level element of World
-          non_hier_geo[:value] = 'World'
-          non_hier_geo[:qualifier] = nil
         else
-          aat_main_term_info = {}
-          label_remaining_check = false
+          hier_geo[:territory] = tgn_term
+        end
+      when '300135982', '300387176', '300387122' #territory, dependent state, union territory
+        hier_geo[:territory] = tgn_term
+      when '300000771', '300387092', '300387071' #county, parishes, unitary authorities
+        hier_geo[:county] = tgn_term
+      when '300008791', '300387062' #island
+        hier_geo[:island] = tgn_term
+      when '300387575', '300387346', '300167671', '300387178', '300387082', '300387173', '300055621', '300386853', '300386831', '300386832', '300008178', '300008804', '300387131', '300132348', '300387085', '300387198', '300008761','300387064'   #'81101/area', '22101/general region', '83210/deserted settlement', '81501/historical region', '81126/national division', administrative divisions, area (measurement), island groups, mountain ranges, mountain systems, nature reserves, peninsulas, regional divisions, sand bars, senatorial districts (administrative districts), first/third level subdivisions (political entities), valleys (landforms)
+        hier_geo[:area] = tgn_term
+      when '300386699' #Top level element of World
+        non_hier_geo[:value] = 'World'
+        non_hier_geo[:qualifier] = nil
+      else
+        aat_main_term_info = {}
+        label_remaining_check = false
 
-          if self.blazegraph_enabled
-            query = %{
-                        SELECT ?Object ?Predicate #{aat_from_context}
-                        WHERE
-                        {
-                          <http://vocab.getty.edu/aat/#{tgn_term_type}> ?Predicate ?Object
-                        }
-                    }.squish
+        if self.blazegraph_enabled
+          query = %{
+                      SELECT ?Object ?Predicate #{aat_from_context}
+                      WHERE
+                      {
+                        <http://vocab.getty.edu/aat/#{tgn_term_type}> ?Predicate ?Object
+                      }
+                  }.squish
 
-            aat_type_response = Typhoeus::Request.post(self.blazegraph_config[0], body: { query: query }, timeout: 500, headers: { Accept: 'application/sparql-results+json' })
-          else
-            aat_type_response = Typhoeus::Request.get("https://vocab.getty.edu/aat/#{tgn_term_type}", followlocation: true, headers: GETTY_TGN_HEADERS, timeout: 500)
-          end
+          aat_type_response = Typhoeus::Request.post(self.blazegraph_config[0], body: { query: query }, timeout: 500, headers: { Accept: 'application/sparql-results+json' })
+        else
+          aat_type_response = Typhoeus::Request.get("https://vocab.getty.edu/aat/#{tgn_term_type}", followlocation: true, headers: GETTY_TGN_HEADERS, timeout: 500)
+        end
 
-          if aat_type_response.success?
-            as_json_aat_term_type = JSON.parse(aat_type_response.body)
+        if aat_type_response.success?
+          as_json_aat_term_type = JSON.parse(aat_type_response.body)
 
-            if as_json_aat_term_type.dig('results', 'bindings').present?
-              as_json_aat_term_type.dig('results', 'bindings').each do |ntriple|
-                case ntriple['Predicate']['value']
-                  when 'http://www.w3.org/2004/02/skos/core#prefLabel'
-                    if ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'en'
-                      aat_main_term_info[:label_en] ||= ntriple['Object']['value']
-                    elsif ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'en-us'
-                      aat_main_term_info[:label_en] ||= ntriple['Object']['value']
-                    elsif  ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'zh-latn-pinyin'
-                      aat_main_term_info[:label_other] ||= ntriple['Object']['value']
-                    elsif ntriple['Object']['xml:lang'].blank?
-                      aat_main_term_info[:label_default] ||= ntriple['Object']['value']
-                    else
-                      label_remaining_check = true if aat_main_term_info[:label_remaining].present?
-                      aat_main_term_info[:label_remaining] ||= ntriple['Object']['value']
-                    end
-                  when 'http://www.w3.org/2004/02/skos/core#altLabel'
-                    if ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'en'
-                      aat_main_term_info[:label_alt] ||= ntriple['Object']['value']
-                    end
-                end
-              end
-            else
-              as_json_aat_term_type.values.each do |ntriple|
-                ntriple.each do |uri_key, uri_val|
-                  case uri_key
-                  when 'http://www.w3.org/2004/02/skos/core#prefLabel'
-                    aat_main_term_info[:label_default] ||= uri_val&.first&.[]('value')
-                  when 'http://www.w3.org/2004/02/skos/core#altLabel'
-                    tgn_main_term_info[:label_alt] ||= uri_val&.first&.[]('value')
+          if as_json_aat_term_type.dig('results', 'bindings').present?
+            as_json_aat_term_type.dig('results', 'bindings').each do |ntriple|
+              case ntriple['Predicate']['value']
+                when 'http://www.w3.org/2004/02/skos/core#prefLabel'
+                  if ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'en'
+                    aat_main_term_info[:label_en] ||= ntriple['Object']['value']
+                  elsif ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'en-us'
+                    aat_main_term_info[:label_en] ||= ntriple['Object']['value']
+                  elsif  ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'zh-latn-pinyin'
+                    aat_main_term_info[:label_other] ||= ntriple['Object']['value']
+                  elsif ntriple['Object']['xml:lang'].blank?
+                    aat_main_term_info[:label_default] ||= ntriple['Object']['value']
+                  else
+                    label_remaining_check = true if aat_main_term_info[:label_remaining].present?
+                    aat_main_term_info[:label_remaining] ||= ntriple['Object']['value']
                   end
+                when 'http://www.w3.org/2004/02/skos/core#altLabel'
+                  if ntriple['Object']['xml:lang'].present? &&  ntriple['Object']['xml:lang'] == 'en'
+                    aat_main_term_info[:label_alt] ||= ntriple['Object']['value']
+                  end
+              end
+            end
+          else
+            as_json_aat_term_type.values.each do |ntriple|
+              ntriple.each do |uri_key, uri_val|
+                case uri_key
+                when 'http://www.w3.org/2004/02/skos/core#prefLabel'
+                  aat_main_term_info[:label_default] ||= uri_val&.first&.[]('value')
+                when 'http://www.w3.org/2004/02/skos/core#altLabel'
+                  tgn_main_term_info[:label_alt] ||= uri_val&.first&.[]('value')
                 end
               end
             end
           end
-          #Default term to best label language...
-          aat_term = aat_main_term_info[:label_en]
-          aat_term ||= aat_main_term_info[:label_default]
-          aat_term ||= aat_main_term_info[:label_other]
-          aat_term ||= aat_main_term_info[:label_alt]
+        end
+        #Default term to best label language...
+        aat_term = aat_main_term_info[:label_en] || aat_main_term_info[:label_default] ||
+                   aat_main_term_info[:label_other] || aat_main_term_info[:label_alt]
 
-          if aat_term.blank?
-            if label_remaining_check
-              raise "Could not determine a single aat non_hier_geo label for TGN: #{tgn_id}"
-            else
-              aat_term = aat_main_term_info[:label_remaining]
-            end
+        if aat_term.blank?
+          if label_remaining_check
+            raise "Could not determine a single aat non_hier_geo label for TGN: #{tgn_id}"
+          else
+            aat_term = aat_main_term_info[:label_remaining]
           end
+        end
 
-          #Fix cases like http://vocab.getty.edu/aat/300132316 which are bays (bodies of water)
-          aat_term = aat_term.gsub(/ \(.+\)$/, '')
+        # Fix cases like http://vocab.getty.edu/aat/300132316 which are bays (bodies of water)
+        aat_term = aat_term.gsub(/ \(.+\)$/, '')
 
-          if (aat_term =~ /ies$/).present? || (aat_term =~ /es$/).present? || (aat_term =~ /s$/).present?
-            aat_term = aat_term.singularize
-          end
+        if (aat_term =~ /ies$/).present? || (aat_term =~ /es$/).present? || (aat_term =~ /s$/).present?
+          aat_term = case aat_term # deal with edge cases where singularize doesn't work
+                     when 'caves', 'coves', 'reserves'
+                       aat_term.gsub(/s\z/, '')
+                     when 'isthmuses'
+                       'isthmus'
+                     else
+                       aat_term.singularize
+                     end
+        elsif %w[rioni quartieri sestieri].include?(aat_term) # more edge cases, for ex: 7006128, 7593081, 7003041
+          aat_term = aat_term.gsub(/i\z/, 'e')
+        end
 
-          #Fix cases like "Boston Harbor" as "Boston Harbor (harbor)" isn't that helpful
-          non_hier_geo[:value] = tgn_term
-          non_hier_geo[:qualifier] = tgn_term.downcase.include?(aat_term.downcase) ? nil : aat_term
+        # Fix cases like "Boston Harbor" as "Boston Harbor (harbor)" isn't that helpful
+        non_hier_geo[:value] = tgn_term
+        non_hier_geo[:qualifier] = tgn_term.downcase.include?(aat_term.downcase) ? nil : aat_term
       end
 
-      #Broader places
-      #FIXME: could parse xml:lang instead of the three optional clauses now... didn't expect places to lack a default preferred label.
-      if broader_place_type_list.present? #Case of World... top of hierachy check
+      # Broader places
+      # FIXME: could parse xml:lang instead of the three optional clauses now... didn't expect places to lack a default preferred label.
+      if broader_place_type_list.present? #Case of World... top of hierarchy check
         query = "SELECT ?identifier_place ?place_label_default ?place_label_en ?aat_pref ?place_label_latn_pinyin #{aat_from_context}  #{tgn_from_context} WHERE {"
 
         broader_place_type_list.each do |place_uri|
@@ -287,7 +297,7 @@ module Geomash
            }.squish
         end
 
-        query = query[0..-12]
+        query = query[0..-8]
         query += ". }} GROUP BY ?identifier_place ?place_label_default ?place_label_en ?place_label_latn_pinyin ?aat_pref"
         query = query.squish
 
@@ -394,7 +404,7 @@ module Geomash
         end
       end
       tgn_data = {}
-      tgn_data[:coords] = coords
+      tgn_data[:coords] = coords.presence
       tgn_data[:hier_geo] = hier_geo.length > 0 ? hier_geo : nil
       tgn_data[:non_hier_geo] = non_hier_geo.present? ? non_hier_geo : nil
       tgn_data
