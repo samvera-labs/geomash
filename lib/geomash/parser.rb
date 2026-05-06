@@ -26,12 +26,12 @@ module Geomash
       Geomash.config[:timeout]
     end
 
-    #Note: Limited to only looking at United States places...
+    # NOTE: Limited to only looking at United States places...
     def self.parse_bing_api(term, parse_term_flag=false)
       return_hash = {}
       retry_count = 3
 
-      #Skip if no bing_key... possibly move this elsewhere?
+      # Skip if no bing_key... possibly move this elsewhere?
       return return_hash if self.bing_key == '<bing_key>'
 
       return_hash[:original_term] = term
@@ -43,7 +43,7 @@ module Geomash
 
       return_hash[:standardized_term] = term
 
-      #Bing API does badly with parentheses...
+      # Bing API does badly with parentheses...
       return {} if term.match(/[\(\)]+/)
 
       #Sometimes with building, city, state, bing is dumb and will only return state. Example: Boston Harbor, Boston, Mass.

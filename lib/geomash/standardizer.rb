@@ -84,10 +84,9 @@ module Geomash
       return geo_term
     end
 
-    #Make a string in a standard format.
+    # Make a string in a standard format.
     def self.standardize_geographic_term(geo_term)
-
-      geo_term = geo_term.clone # Don't change original
+      geo_term = geo_term.dup # Don't change original
 
       #Remove common junk terms
       Geomash::Constants::JUNK_TERMS.each { |term| geo_term.gsub!(term, '') }

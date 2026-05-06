@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'test_helper'
 
 class TGNTest < ActiveSupport::TestCase
@@ -14,7 +16,7 @@ class TGNTest < ActiveSupport::TestCase
       assert_equal 'United States', result[:hier_geo][:country]
       assert_equal 'North and Central America', result[:hier_geo][:continent]
 
-      #Check for a weird prefLabel case of only zh-latn-pinyin-x-notone
+      # Check for a weird prefLabel case of only zh-latn-pinyin-x-notone
       result = Geomash::TGN.get_tgn_data('7002066')
       assert_equal '45.75', result[:coords][:latitude]
       assert_equal '126.65', result[:coords][:longitude]

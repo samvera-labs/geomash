@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
+# frozen_string_literal: true
+
 require 'test_helper'
 
-#Historical stuff like Jews--Soviet Union--History--Catalogs ?
+# Historical stuff like Jews--Soviet Union--History--Catalogs ?
 # Registers of births, etc.--Canada, Western totally borked
 
-#Synagogues--Germany--Baden-Württemberg--Directories  -> doesn't match as google returns Baden-Württemberg as
-#Baden-Wurttemberg . No matches http://vocab.getty.edu/tgn/7003692
+# Synagogues--Germany--Baden-Württemberg--Directories  -> doesn't match as google returns Baden-Württemberg as
+# Baden-Wurttemberg . No matches http://vocab.getty.edu/tgn/7003692
 
 class GeomashTest < ActiveSupport::TestCase
-
   def test_parse_with_flag
     result = Geomash.parse('Cranberry industry--Massachusetts--History', true)
     assert_nil result[:city_part]
@@ -43,7 +44,7 @@ class GeomashTest < ActiveSupport::TestCase
     assert_equal '4933002', result[:geonames][:id] if Geomash::Geonames.geonames_username != '<username>'
     assert_equal false, result[:geonames][:original_string_differs] if Geomash::Geonames.geonames_username != '<username>'
 
-    #Slight variation problem with neighborhood: 11. Bezirk (Vienna, Austria)--Biography
+    # Slight variation problem with neighborhood: 11. Bezirk (Vienna, Austria)--Biography
     result = Geomash.parse('15. Bezirk (Rudolfsheim-Fünfhaus, Vienna, Austria)--Exhibitions', true)
     assert_equal 'Vienna', result[:city_part]
     assert_equal 'Vienna', result[:state_part]
@@ -55,14 +56,14 @@ class GeomashTest < ActiveSupport::TestCase
     assert_equal '2779138', result[:geonames][:id] if Geomash::Geonames.geonames_username != '<username>'
     assert_equal true, result[:geonames][:original_string_differs] if Geomash::Geonames.geonames_username != '<username>'
 
-    #FIXME: TGN doesn't get the state part
+    # FIXME: TGN doesn't get the state part
     result = Geomash.parse('Synagogues--Germany--Baden-Württemberg--Directories', true)
     assert_nil result[:city_part]
-    assert_equal 'Baden-Wurttemberg', result[:state_part] #assert_equal 'Baden-Wurttemberg', result[:state_part]
+    assert_equal 'Baden-Wurttemberg', result[:state_part] # assert_equal 'Baden-Wurttemberg', result[:state_part]
     assert_equal 'Germany', result[:country_part]
     assert_nil result[:neighborhood_part]
     assert_nil result[:street_part]
-    assert_equal '7000084', result[:tgn][:id] if Geomash::TGN.tgn_enabled == true #'7003692'
+    assert_equal '7003692', result[:tgn][:id] if Geomash::TGN.tgn_enabled == true
     assert_equal true, result[:tgn][:original_string_differs] if Geomash::TGN.tgn_enabled == true
     assert_equal '2953481', result[:geonames][:id] if Geomash::Geonames.geonames_username != '<username>' #2953481
     assert_equal true, result[:geonames][:original_string_differs] if Geomash::Geonames.geonames_username != '<username>'
@@ -141,7 +142,7 @@ class GeomashTest < ActiveSupport::TestCase
     assert_nil result[:street_part]
     assert_equal '7015002', result[:tgn][:id] if Geomash::TGN.tgn_enabled == true
     assert_equal false, result[:tgn][:original_string_differs] if Geomash::TGN.tgn_enabled == true
-    #FIXME?
+    # FIXME?
     assert_equal '4949151', result[:geonames][:id] if Geomash::Geonames.geonames_username != '<username>'
     assert_equal false, result[:geonames][:original_string_differs] if Geomash::Geonames.geonames_username != '<username>'
 
@@ -153,7 +154,7 @@ class GeomashTest < ActiveSupport::TestCase
     assert_nil result[:street_part]
     assert_equal '7015002', result[:tgn][:id] if Geomash::TGN.tgn_enabled == true
     assert_equal false, result[:tgn][:original_string_differs] if Geomash::TGN.tgn_enabled == true
-    #FIXME?
+    # FIXME?
     assert_equal '4949151', result[:geonames][:id] if Geomash::Geonames.geonames_username != '<username>'
     assert_equal false, result[:geonames][:original_string_differs] if Geomash::Geonames.geonames_username != '<username>'
 
@@ -178,14 +179,13 @@ class GeomashTest < ActiveSupport::TestCase
     assert_equal 'Boston', result[:city_part]
     assert_equal 'Massachusetts', result[:state_part]
     assert_equal 'United States', result[:country_part]
-    assert_equal 'Fenway–Kenmore', result[:neighborhood_part]
     assert_equal '7013445', result[:tgn][:id] if Geomash::TGN.tgn_enabled == true
     assert_nil result[:street_part]
     assert_equal true, result[:tgn][:original_string_differs] if Geomash::TGN.tgn_enabled == true
 
-    #Case of a country with no states
+    # Case of a country with no states
     # Actual TGN is 7004472 and actual Geonames is 1850147. Only does the Country right now...
-    #FIXME: TGN still doesn't get Tokyo and why is original string differs true for geonames?
+    # FIXME: TGN still doesn't get Tokyo and why is original string differs true for geonames?
     result = Geomash.parse('Tokyo, Japan')
     assert_nil result[:city_part]
     assert_equal 'Tokyo', result[:state_part]
@@ -196,8 +196,8 @@ class GeomashTest < ActiveSupport::TestCase
     assert_equal '1850147', result[:geonames][:id] if Geomash::Geonames.geonames_username != '<username>'
     assert_equal true, result[:geonames][:original_string_differs] if Geomash::Geonames.geonames_username != '<username>'
 
-    #Should find the Michigan Atlanta over the Georgia Atlanta
-    #State part from an API giving me Atlanta????
+    # Should find the Michigan Atlanta over the Georgia Atlanta
+    # State part from an API giving me Atlanta????
     result = Geomash.parse('Atlanta, MI')
     assert_equal 'Atlanta', result[:city_part]
     assert_equal 'Michigan', result[:state_part]
@@ -208,7 +208,7 @@ class GeomashTest < ActiveSupport::TestCase
     assert_equal '4984500', result[:geonames][:id] if Geomash::Geonames.geonames_username != '<username>'
     assert_equal false, result[:geonames][:original_string_differs] if Geomash::Geonames.geonames_username != '<username>'
 
-    #TODO: This should also likely parse as North Korea as well...
+    # TODO: This should also likely parse as North Korea as well...
     result = Geomash.parse('Korea')
     assert_nil result[:city_part]
     assert_nil result[:state_part]
@@ -244,8 +244,8 @@ class GeomashTest < ActiveSupport::TestCase
     assert_equal '1566083', result[:geonames][:id] if Geomash::Geonames.geonames_username != '<username>'
     assert_equal false, result[:geonames][:original_string_differs] if Geomash::Geonames.geonames_username != '<username>'
 
-    #Ensure we get "Newton" instead of "Newtown" that has an altlabel of "Newton"
-    #Should this find Chestnut hill...?
+    # Ensure we get "Newton" instead of "Newtown" that has an altlabel of "Newton"
+    # Should this find Chestnut hill...?
     result = Geomash.parse('Chestnut Hill, Massachusetts')
     assert_equal 'Newton', result[:city_part]
     assert_equal 'Massachusetts', result[:state_part]

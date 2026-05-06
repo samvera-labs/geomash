@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'test_helper'
 
 class ParserTest < ActiveSupport::TestCase
@@ -35,6 +37,4 @@ class ParserTest < ActiveSupport::TestCase
     #assert_equal 'United States', result[:country_part]
     #assert_equal 'true', result[:term_differs_from_tgn]
   end
-
-
 end

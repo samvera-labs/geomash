@@ -40,7 +40,7 @@ module Geomash
       tgn_main_term_info = {}
       broader_place_type_list = []
 
-      #Only hit the external service if blazegraph isn't installed
+      # Only hit the external service if blazegraph isn't installed
       unless self.blazegraph_enabled
         primary_tgn_response = Typhoeus::Request.get("https://vocab.getty.edu/tgn/#{tgn_id}", followlocation: true, headers: GETTY_TGN_HEADERS, timeout: 500)
 
@@ -49,7 +49,7 @@ module Geomash
         as_json_tgn_response = JSON.parse(primary_tgn_response.body)
       end
 
-      #There is a bug with some TGN JSON files currently. Example: http://vocab.getty.edu/tgn/7014203.json . Per an email
+      # There is a bug with some TGN JSON files currently. Example: http://vocab.getty.edu/tgn/7014203.json . Per an email
       # with Getty, this is a hackish workaround for now.
       if as_json_tgn_response.blank?
         query = %{
@@ -65,7 +65,7 @@ module Geomash
         if self.blazegraph_enabled
           primary_tgn_response = Typhoeus::Request.post(self.blazegraph_config[0], body: { query: query }, timeout: 500, headers: { Accept: 'application/sparql-results+json' })
         else
-          primary_tgn_response = Typhoeus::Request.get('https://vocab.getty.edu/sparql.json', params: { query: query }, timeout: 500 )
+          primary_tgn_response = Typhoeus::Request.get('https://vocab.getty.edu/sparql.json', followlocation: true, params: { query: query }, timeout: 500 )
         end
 
         as_json_tgn_response = JSON.parse(primary_tgn_response.body)
@@ -140,7 +140,7 @@ module Geomash
       hier_geo = {}
       non_hier_geo = {}
 
-      #Default term to best label language...
+      # Default term to best label language...
       tgn_term = tgn_main_term_info[:label_en] || tgn_main_term_info[:label_default] ||
                  tgn_main_term_info[:label_other] || tgn_main_term_info[:label_alt] ||
                  tgn_main_term_info[:label_remaining]
@@ -156,35 +156,35 @@ module Geomash
       return if tgn_term.blank? && tgn_term_type.blank?
 
       case tgn_term_type
-      when '300008347', '300008389' #inhabited place, cities
+      when '300008347', '300008389' # inhabited place, cities
         hier_geo[:city] = tgn_term
-      when '300000745', '300000778', '300387331' #neighborhood, parishes, parts of inhabited places
+      when '300000745', '300000778', '300387331' # neighborhood, parishes, parts of inhabited places
         hier_geo[:city_section] = tgn_term
-      when '300128176' #continent
+      when '300128176' # continent
         hier_geo[:continent] = tgn_term
-      when '300128207', '300387130', '300387506' #nation, autonomous areas, countries
+      when '300128207', '300387130', '300387506' # nation, autonomous areas, countries
         hier_geo[:country] = tgn_term
-      when '300000774' #province
+      when '300000774' # province
         hier_geo[:province] = tgn_term
-      when '300236112', '300182722', '300387194', '300387052', '300387113', '300387107' #region, union, semi-independent political entity, autonomous communities, autonomous regions
+      when '300236112', '300182722', '300387194', '300387052', '300387113', '300387107' # region, union, semi-independent political entity, autonomous communities, autonomous regions
         hier_geo[:region] = tgn_term
-      when '300000776', '300000772', '300235093' #state, department, governorate
+      when '300000776', '300000772', '300235093' # state, department, governorate
         hier_geo[:state] = tgn_term
-      when '300387081' #national district
+      when '300387081' # national district
         if tgn_term == 'District of Columbia'
           hier_geo[:state] = tgn_term
         else
           hier_geo[:territory] = tgn_term
         end
-      when '300135982', '300387176', '300387122' #territory, dependent state, union territory
+      when '300135982', '300387176', '300387122' # territory, dependent state, union territory
         hier_geo[:territory] = tgn_term
-      when '300000771', '300387092', '300387071' #county, parishes, unitary authorities
+      when '300000771', '300387092', '300387071' # county, parishes, unitary authorities
         hier_geo[:county] = tgn_term
-      when '300008791', '300387062' #island
+      when '300008791', '300387062' # island
         hier_geo[:island] = tgn_term
-      when '300387575', '300387346', '300167671', '300387178', '300387082', '300387173', '300055621', '300386853', '300386831', '300386832', '300008178', '300008804', '300387131', '300132348', '300387085', '300387198', '300008761','300387064'   #'81101/area', '22101/general region', '83210/deserted settlement', '81501/historical region', '81126/national division', administrative divisions, area (measurement), island groups, mountain ranges, mountain systems, nature reserves, peninsulas, regional divisions, sand bars, senatorial districts (administrative districts), first/third level subdivisions (political entities), valleys (landforms)
+      when '300387575', '300387346', '300167671', '300387178', '300387082', '300387173', '300055621', '300386853', '300386831', '300386832', '300008178', '300008804', '300387131', '300132348', '300387085', '300387198', '300008761','300387064', '300000705'   #'81101/area', '22101/general region', '83210/deserted settlement', '81501/historical region', '81126/national division', administrative divisions, area (measurement), island groups, mountain ranges, mountain systems, nature reserves, peninsulas, regional divisions, sand bars, senatorial districts (administrative districts), first/third level subdivisions (political entities), valleys (landforms), districts
         hier_geo[:area] = tgn_term
-      when '300386699' #Top level element of World
+      when '300386699' # Top level element of World
         non_hier_geo[:value] = 'World'
         non_hier_geo[:qualifier] = nil
       else
@@ -243,7 +243,7 @@ module Geomash
             end
           end
         end
-        #Default term to best label language...
+        # Default term to best label language...
         aat_term = aat_main_term_info[:label_en] || aat_main_term_info[:label_default] ||
                    aat_main_term_info[:label_other] || aat_main_term_info[:label_alt]
 
@@ -304,7 +304,7 @@ module Geomash
         if self.blazegraph_enabled
           tgn_response_for_aat = Typhoeus::Request.post(self.blazegraph_config[0], body: { query: query }, timeout: 500, headers: { Accept: "application/sparql-results+json" })
         else
-          tgn_response_for_aat = Typhoeus::Request.post('http://vocab.getty.edu/sparql.json', body: { query: query }, timeout: 500)
+          tgn_response_for_aat = Typhoeus::Request.post('https://vocab.getty.edu/sparql.json', body: { query: query }, timeout: 500)
         end
 
         raise "Sparql query for broader_place_type_list failed with the code #{tgn_response_for_aat.response_code}" unless tgn_response_for_aat.success?
@@ -372,33 +372,33 @@ module Geomash
           raise "Could not find a label for broader term: #{aat_response['identifier_place']['value']} of base term: #{tgn_id}" if tgn_term.blank?
 
           case tgn_term_type
-          when '300128176' #continent
+          when '300128176' # continent
             hier_geo[:continent] ||= tgn_term
-          when '300128207', '300387130', '300387506' #nation, autonomous areas, countries
+          when '300128207', '300387130', '300387506' # nation, autonomous areas, countries
             hier_geo[:country] ||= tgn_term
-          when '300000774' #province
+          when '300000774' # province
             hier_geo[:province] ||= tgn_term
-          when '300236112', '300182722', '300387194', '300387052', '300387113', '300387107' #region, union, semi-independent political entity, autonomous communities, autonomous regions
+          when '300236112', '300182722', '300387194', '300387052', '300387113', '300387107' # region, union, semi-independent political entity, autonomous communities, autonomous regions
             hier_geo[:region] ||= tgn_term
-          when '300000776', '300000772', '300235093' #state, department, governorate
+          when '300000776', '300000772', '300235093' # state, department, governorate
             hier_geo[:state] ||= tgn_term
-          when '300387081' #national district
+          when '300387081' # national district
             if tgn_term == 'District of Columbia'
               hier_geo[:state] ||= tgn_term
             else
               hier_geo[:territory] ||= tgn_term
             end
-          when '300135982', '300387176', '300387122' #territory, dependent state, union territory
+          when '300135982', '300387176', '300387122' # territory, dependent state, union territory
             hier_geo[:territory] ||= tgn_term
-          when '300000771', '300387092', '300387071' #county, parishes, unitary authorities
+          when '300000771', '300387092', '300387071' # county, parishes, unitary authorities
             hier_geo[:county] ||= tgn_term
-          when '300008347', '300008389' #inhabited place, cities
+          when '300008347', '300008389' # inhabited place, cities
             hier_geo[:city] ||= tgn_term
-          when '300000745', '300000778', '300387331' #neighborhood, parishes, parts of inhabited places
+          when '300000745', '300000778', '300387331' # neighborhood, parishes, parts of inhabited places
             hier_geo[:city_section] ||= tgn_term
-          when '300008791', '300387062' #island
+          when '300008791', '300387062' # island
             hier_geo[:island] ||= tgn_term
-          when '300387575', '300387346', '300167671', '300387178', '300387082', '300387173', '300055621', '300386853', '300386831', '300386832', '300008178', '300008804', '300387131', '300132348', '300387085', '300387198', '300008761'   #'81101/area', '22101/general region', '83210/deserted settlement', '81501/historical region', '81126/national division', administrative divisions, area (measurement), island groups, mountain ranges, mountain systems, nature reserves, peninsulas, regional divisions, sand bars, senatorial districts (administrative districts), third level subdivisions (political entities), valleys (landforms)
+          when '300387575', '300387346', '300167671', '300387178', '300387082', '300387173', '300055621', '300386853', '300386831', '300386832', '300008178', '300008804', '300387131', '300132348', '300387085', '300387198', '300008761'   # '81101/area', '22101/general region', '83210/deserted settlement', '81501/historical region', '81126/national division', administrative divisions, area (measurement), island groups, mountain ranges, mountain systems, nature reserves, peninsulas, regional divisions, sand bars, senatorial districts (administrative districts), third level subdivisions (political entities), valleys (landforms)
             hier_geo[:area] ||= tgn_term
           end
         end

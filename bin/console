@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 require 'bundler/setup'
-require 'pry'
+require 'irb'
 require 'geomash'
 
-Pry.start
+IRB.start

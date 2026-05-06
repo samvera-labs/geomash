@@ -1,16 +1,18 @@
 # frozen_string_literal: true
 
+require 'json'
+require 'geocoder'
+require 'countries'
+require 'stringex'
+require 'typhoeus'
+require 'nokogiri'
+require 'htmlentities'
+require 'active_support'
+require 'active_support/core_ext/string/filters'
+require 'active_support/core_ext/enumerable'
+require 'active_support/core_ext/hash'
+
 module Geomash
-  require 'geocoder'
-  require 'countries'
-  require 'stringex'
-  require 'typhoeus'
-  require 'nokogiri'
-  require 'htmlentities'
-  require 'active_support'
-  require 'active_support/core_ext/string/filters'
-  require 'active_support/core_ext/enumerable'
-  require 'active_support/core_ext/hash'
   require 'geomash/constants'
   require 'geomash/parser'
   require 'geomash/standardizer'

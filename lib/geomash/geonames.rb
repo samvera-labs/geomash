@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Geomash
   class Geonames
     def self.geonames_username
@@ -154,7 +156,6 @@ module Geomash
         else
           return nil
         end
-
       end
 
       if geonames_response.code == 500

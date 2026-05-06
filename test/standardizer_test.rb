@@ -72,6 +72,4 @@ class ParserTest < ActiveSupport::TestCase
     result = Geomash::Standardizer.standardize_geographic_term('Massachusetts &gt; Hampden (county) &gt; Chicopee')
     assert_equal 'Massachusetts, Hampden, Chicopee', result
   end
-
-
 end
